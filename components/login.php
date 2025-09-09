@@ -25,9 +25,9 @@
                     <span class="title">Login</span>
                     <form action="#">
                         <div class="input-field">
-                            <input type="text" placeholder="Enter your email"
-                                id="email" required />
-                            <i class="uil uil-envelope icon"></i>
+                            <input type="text" placeholder="Enter your username"
+                                id="username" required />
+                            <i class="uil uil-user icon"></i>
                         </div>
                         <div class="input-field">
                             <input type="password" class="password"
@@ -40,7 +40,6 @@
                                 <input type="checkbox" id="logCheck" />
                                 <label for="logCheck" class="text">Remember me</label>
                             </div>
-                            <a href="#" class="text">Forgot password?</a>
                         </div>
                         <div class="input-field button" id="login">
                             <input type="button" value="Login" />
@@ -53,12 +52,6 @@
 
     <?php include 'footer.php'; ?>
     <script src="../js/login.js"></script>
-    <script>
-        const contactInput = document.getElementById('contact');
-        contactInput.addEventListener("input", function(e){
-            this.value = this.value.replace(/[^0-9]/g, '');
-        })
-    </script>
 </body>
 
 </html>

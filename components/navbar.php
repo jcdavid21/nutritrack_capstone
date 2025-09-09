@@ -14,6 +14,9 @@
             <a href="./modules.php"
                 class="<?php echo (basename($_SERVER['PHP_SELF']) == 'modules.php') ? 'active' : ''; ?>"><i class="fa-solid fa-book"></i>Modules</a>
 
+            <a href="./events.php"  
+                class="<?php echo (basename($_SERVER['PHP_SELF']) == 'events.php') ? 'active' : ''; ?>"><i class="fa-solid fa-calendar-days"></i> Events</a>
+
             <?php if (isset($_SESSION["user_id"])) { ?>
                 <div class="arrow-down">
                     <i class="fa-solid fa-sort-down"></i>

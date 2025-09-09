@@ -3,6 +3,11 @@
 include_once("../backend/config.php");
 session_start();
 
+if (!isset($_SESSION['user_id']) && $_SESSION["role_id"] != 2) {
+    header("Location: ../components/login.php");
+    exit();
+}
+
 // Fetch dashboard statistics
 $registered_children_query = "SELECT COUNT(*) as count FROM tbl_child";
 $registered_children_result = mysqli_query($conn, $registered_children_query);
@@ -24,9 +29,18 @@ while ($row = mysqli_fetch_assoc($flagged_cases_result)) {
     $flagged_cases_data[] = $row;
 }
 
-// Fetch nutrition status data for pie chart
-$nutrition_status_query = "SELECT ns.status_name, COUNT(*) as count FROM tbl_nutritrion_record nr 
-                          JOIN tbl_nutrition_status ns ON nr.status_id = ns.status_id 
+// Fetch nutrition status data for pie chart (latest records only)
+$nutrition_status_query = "SELECT ns.status_name, COUNT(*) as count 
+                          FROM (
+                              SELECT DISTINCT nr1.child_id, nr1.status_id
+                              FROM tbl_nutritrion_record nr1
+                              INNER JOIN (
+                                  SELECT child_id, MAX(date_recorded) as max_date
+                                  FROM tbl_nutritrion_record
+                                  GROUP BY child_id
+                              ) nr2 ON nr1.child_id = nr2.child_id AND nr1.date_recorded = nr2.max_date
+                          ) latest_records
+                          JOIN tbl_nutrition_status ns ON latest_records.status_id = ns.status_id 
                           GROUP BY ns.status_name";
 $nutrition_status_result = mysqli_query($conn, $nutrition_status_query);
 $nutrition_data = [];
@@ -49,7 +63,33 @@ $education_resources = [];
 while ($row = mysqli_fetch_assoc($education_resources_result)) {
     $education_resources[] = $row;
 }
+
+// Fetch reports data for line chart
+$reports_query = "SELECT DATE_FORMAT(report_date, '%Y-%m') as month, COUNT(*) as count FROM tbl_report GROUP BY DATE_FORMAT(report_date, '%Y-%m') ORDER BY month DESC LIMIT 6";
+$reports_result = mysqli_query($conn, $reports_query);
+$reports_data = [];
+while ($row = mysqli_fetch_assoc($reports_result)) {
+    $reports_data[] = $row;
+}
+
+// Fetch zone data for filters
+$zones_query = "SELECT DISTINCT zone_id, zone_name FROM tbl_barangay ORDER BY zone_name";
+$zones_result = mysqli_query($conn, $zones_query);
+$zones = [];
+while ($row = mysqli_fetch_assoc($zones_result)) {
+    $zones[] = $row;
+}
+
+// Fetch vaccination status data for doughnut chart
+$vaccination_status_query = "SELECT vaccine_status, COUNT(*) as count FROM tbl_vaccine_record GROUP BY vaccine_status";
+$vaccination_status_result = mysqli_query($conn, $vaccination_status_query);
+$vaccination_data = [];
+while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
+    $vaccination_data[] = $row;
+}
 ?>
+
+
 <html lang="en">
 
 <head>
@@ -453,6 +493,50 @@ while ($row = mysqli_fetch_assoc($education_resources_result)) {
                 align-self: flex-start;
             }
         }
+
+        .chart-filters {
+            margin-top: 15px;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            color: var(--text-color);
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.3s ease;
+            min-width: 150px;
+        }
+
+        .filter-select:focus {
+            border-color: var(--primary-color);
+        }
+
+        .filter-select:hover {
+            border-color: var(--secondary-color);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
@@ -462,8 +546,9 @@ while ($row = mysqli_fetch_assoc($education_resources_result)) {
     <div class="main-content">
         <div class="dashboard-header">
             <h1 class="dashboard-title">
-                <i class="fas fa-tachometer-alt"></i>   
-            Dashboard Overview</h1>
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard Overview
+            </h1>
             <p class="dashboard-subtitle">Welcome to your admin dashboard. Monitor key metrics and manage your system efficiently.</p>
         </div>
 
@@ -510,6 +595,14 @@ while ($row = mysqli_fetch_assoc($education_resources_result)) {
                 <div class="chart-header">
                     <h3 class="chart-title">Flagged Cases Trend</h3>
                     <p class="chart-subtitle">Monthly flagged cases over the last 6 months</p>
+                    <div class="chart-filters">
+                        <select id="flaggedCasesFilter" class="filter-select">
+                            <option value="all">All Zones</option>
+                            <?php foreach ($zones as $zone): ?>
+                                <option value="<?php echo $zone['zone_id']; ?>"><?php echo htmlspecialchars($zone['zone_name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
                 <div class="chart-container">
                     <canvas id="flaggedCasesChart"></canvas>
@@ -520,9 +613,39 @@ while ($row = mysqli_fetch_assoc($education_resources_result)) {
                 <div class="chart-header">
                     <h3 class="chart-title">Nutrition Status Distribution</h3>
                     <p class="chart-subtitle">Current nutrition status of registered children</p>
+                    <div class="chart-filters">
+                        <select id="nutritionFilter" class="filter-select">
+                            <option value="all">All Zones</option>
+                            <?php foreach ($zones as $zone): ?>
+                                <option value="<?php echo $zone['zone_id']; ?>"><?php echo htmlspecialchars($zone['zone_name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
                 <div class="pie-chart-container">
                     <canvas id="nutritionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Reports Generated Over Time</h3>
+                    <p class="chart-subtitle">Monthly reports generated in the last 6 months</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="reportsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Vaccination Status Overview</h3>
+                    <p class="chart-subtitle">Overall vaccination completion status</p>
+                </div>
+                <div class="pie-chart-container">
+                    <canvas id="vaccinationChart"></canvas>
                 </div>
             </div>
         </div>
@@ -614,115 +737,336 @@ while ($row = mysqli_fetch_assoc($education_resources_result)) {
             }
         });
 
-        const flaggedCasesData = <?php echo json_encode(array_reverse($flagged_cases_data)); ?>;
-        const flaggedLabels = flaggedCasesData.map(item => {
-            const date = new Date(item.month + '-01');
-            return date.toLocaleDateString('en-US', {
-                month: 'short',
-                year: 'numeric'
-            });
-        });
-        const flaggedValues = flaggedCasesData.map(item => parseInt(item.count));
+        // Global chart variables
+        let flaggedChart, nutritionChart, reportsChart;
 
-        if (flaggedLabels.length === 0) {
-            flaggedLabels.push('Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024');
-            flaggedValues.push(0, 0, 0, 0, 0, 0);
+        // Original data
+        const originalFlaggedData = <?php echo json_encode(array_reverse($flagged_cases_data)); ?>;
+        const originalNutritionData = <?php echo json_encode($nutrition_data); ?>;
+        const originalReportsData = <?php echo json_encode(array_reverse($reports_data)); ?>;
+        // Add this line after the existing data variables
+        const originalVaccinationData = <?php echo json_encode($vaccination_data); ?>;
+        let vaccinationChart;
+
+        function initializeCharts() {
+            initializeFlaggedChart(originalFlaggedData);
+            initializeNutritionChart(originalNutritionData);
+            initializeVaccinationChart(originalVaccinationData);
+            initializeReportsChart(originalReportsData);
         }
-        
 
-        const flaggedCtx = document.getElementById('flaggedCasesChart').getContext('2d');
-        new Chart(flaggedCtx, {
-            type: 'bar',
-            data: {
-                labels: flaggedLabels,
-                datasets: [{
-                    label: 'Flagged Cases',
-                    data: flaggedValues,
-                    backgroundColor: [
-                        '#ff5722',
-                        '#ff9800',
-                        '#ffc107',
-                        '#4caf50',
-                        '#2196f3',
-                        '#3f51b5',
-                        '#9c27b0',
-                        '#c2185b'
-                    ],
-                    borderColor: '#d84315',
-                    borderWidth: 1,
-                    borderRadius: 6,
-                    borderSkipped: false,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+        function initializeFlaggedChart(data) {
+            const flaggedLabels = data.map(item => {
+                if (!item.month) return 'No Data';
+                const date = new Date(item.month + '-01');
+                return date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    year: 'numeric'
+                });
+            });
+            const flaggedValues = data.map(item => parseInt(item.count || 0));
+
+            if (flaggedLabels.length === 0) {
+                flaggedLabels.push('Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024');
+                flaggedValues.push(0, 0, 0, 0, 0, 0);
+            }
+
+            const flaggedCtx = document.getElementById('flaggedCasesChart').getContext('2d');
+
+            if (flaggedChart) {
+                flaggedChart.destroy();
+            }
+
+            flaggedChart = new Chart(flaggedCtx, {
+                type: 'bar',
+                data: {
+                    labels: flaggedLabels,
+                    datasets: [{
+                        label: 'Flagged Cases',
+                        data: flaggedValues,
+                        backgroundColor: [
+                            '#ff5722',
+                            '#ff9800',
+                            '#ffc107',
+                            '#4caf50',
+                            '#2196f3',
+                            '#3f51b5',
+                            '#9c27b0',
+                            '#c2185b'
+                        ],
+                        borderColor: '#d84315',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        },
-                        grid: {
-                            color: '#f1f3f4'
-                        }
-                    },
-                    x: {
-                        grid: {
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
                             display: false
                         }
-                    }
-                }
-            }
-        });
-
-        const nutritionData = <?php echo json_encode($nutrition_data); ?>;
-        const nutritionLabels = nutritionData.map(item => item.status_name);
-        const nutritionValues = nutritionData.map(item => parseInt(item.count));
-
-        if (nutritionLabels.length === 0) {
-            nutritionLabels.push('Healthy', 'Underweight', 'Severely Underweight');
-            nutritionValues.push(0, 0, 0);
-        }
-
-        const nutritionCtx = document.getElementById('nutritionChart').getContext('2d');
-        new Chart(nutritionCtx, {
-            type: 'pie',
-            data: {
-                labels: nutritionLabels,
-                datasets: [{
-                    data: nutritionValues,
-                    backgroundColor: [
-                        '#4CAF50',
-                        '#FF9800',
-                        '#f44336',
-                        '#9C27B0'
-                    ],
-                    borderColor: '#ffffff',
-                    borderWidth: 3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            font: {
-                                size: 12
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: '#f1f3f4'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
                             }
                         }
                     }
                 }
+            });
+        }
+
+        function initializeNutritionChart(data) {
+            const nutritionLabels = data.map(item => item.status_name);
+            const nutritionValues = data.map(item => parseInt(item.count || 0));
+
+            if (nutritionLabels.length === 0) {
+                nutritionLabels.push('Healthy', 'Underweight', 'Severely Underweight');
+                nutritionValues.push(0, 0, 0);
             }
-        });
+
+            const nutritionCtx = document.getElementById('nutritionChart').getContext('2d');
+
+            if (nutritionChart) {
+                nutritionChart.destroy();
+            }
+
+            nutritionChart = new Chart(nutritionCtx, {
+                type: 'pie',
+                data: {
+                    labels: nutritionLabels,
+                    datasets: [{
+                        data: nutritionValues,
+                        backgroundColor: [
+                            '#4CAF50',
+                            '#FF9800',
+                            '#f44336',
+                            '#9C27B0',
+                            '#2196F3'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeReportsChart(data) {
+            const reportsLabels = data.map(item => {
+                if (!item.month) return 'No Data';
+                const date = new Date(item.month + '-01');
+                return date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    year: 'numeric'
+                });
+            });
+            const reportsValues = data.map(item => parseInt(item.count || 0));
+
+            if (reportsLabels.length === 0) {
+                reportsLabels.push('Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024');
+                reportsValues.push(0, 0, 0, 0, 0, 0);
+            }
+
+            const reportsCtx = document.getElementById('reportsChart').getContext('2d');
+
+            if (reportsChart) {
+                reportsChart.destroy();
+            }
+
+            reportsChart = new Chart(reportsCtx, {
+                type: 'line',
+                data: {
+                    labels: reportsLabels,
+                    datasets: [{
+                        label: 'Reports Generated',
+                        data: reportsValues,
+                        borderColor: '#2E7D32',
+                        backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#2E7D32',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: '#f1f3f4'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeVaccinationChart(data) {
+            const vaccinationLabels = data.map(item => {
+                // Make labels more user-friendly
+                switch (item.vaccine_status) {
+                    case 'Completed':
+                        return 'Fully Vaccinated';
+                    case 'Ongoing':
+                        return 'In Progress';
+                    case 'Incomplete':
+                        return 'Incomplete';
+                    default:
+                        return item.vaccine_status;
+                }
+            });
+            const vaccinationValues = data.map(item => parseInt(item.count || 0));
+
+            if (vaccinationLabels.length === 0) {
+                vaccinationLabels.push('Fully Vaccinated', 'In Progress', 'Incomplete');
+                vaccinationValues.push(0, 0, 0);
+            }
+
+            const vaccinationCtx = document.getElementById('vaccinationChart').getContext('2d');
+
+            if (vaccinationChart) {
+                vaccinationChart.destroy();
+            }
+
+            vaccinationChart = new Chart(vaccinationCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: vaccinationLabels,
+                    datasets: [{
+                        data: vaccinationValues,
+                        backgroundColor: [
+                            '#4CAF50', // Green for Completed
+                            '#FF9800', // Orange for Ongoing
+                            '#f44336', // Red for Incomplete
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed * 100) / total).toFixed(1);
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        // Filter functions
+        function filterFlaggedCases() {
+            const filterValue = document.getElementById('flaggedCasesFilter').value;
+
+            if (filterValue === 'all') {
+                initializeFlaggedChart(originalFlaggedData);
+                return;
+            }
+
+            // Fetch filtered data via AJAX
+            fetch(`../backend/filter_flagged_cases.php?zone_id=${filterValue}`)
+                .then(response => response.json())
+                .then(data => {
+                    initializeFlaggedChart(data);
+                })
+                .catch(error => {
+                    console.error('Error filtering flagged cases:', error);
+                    initializeFlaggedChart([]);
+                });
+        }
+
+        function filterNutrition() {
+            const filterValue = document.getElementById('nutritionFilter').value;
+
+            if (filterValue === 'all') {
+                initializeNutritionChart(originalNutritionData);
+                return;
+            }
+
+            // Fetch filtered data via AJAX
+            fetch(`../backend/filter_nutrition_data.php?zone_id=${filterValue}`)
+                .then(response => response.json())
+                .then(data => {
+                    initializeNutritionChart(data);
+                })
+                .catch(error => {
+                    console.error('Error filtering nutrition data:', error);
+                    initializeNutritionChart([]);
+                });
+        }
+
+        // Event listeners
+        document.getElementById('flaggedCasesFilter').addEventListener('change', filterFlaggedCases);
+        document.getElementById('nutritionFilter').addEventListener('change', filterNutrition);
+
+        // Initialize all charts on page load
+        initializeCharts();
     </script>
 </body>
 

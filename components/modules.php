@@ -62,6 +62,12 @@ include_once '../backend/config.php';
         <div class="modules-section">
             <div class="modules-container">
                 <div class="modules-grid" id="modulesGrid">
+                    <?php 
+                        $query = "SELECT * FROM tbl_modules ORDER BY posted_date DESC";
+                        $result = $conn->query($query);
+                        if($result && $result->num_rows > 0) {
+                            while($row = $result->fetch_assoc()) {
+                    ?>
                     <article class="module-card" data-category="basics" data-date="2024-03-15" data-title="Understanding Macronutrients" data-content="Learn about carbohydrates, proteins, and fats and their roles in maintaining optimal health and energy levels" data-popularity="95">
                         <div class="card-header">
                             <div class="category-badge modules">
@@ -70,173 +76,27 @@ include_once '../backend/config.php';
                             </div>
                         </div>
                         <div class="card-image">
-                            <img src="../assets/modules/module-1.jpg" alt="Macronutrients">
+                            <img src="../assets/modules/<?php echo $row["module_thumbnail"]; ?>" alt="Macronutrients">
                         </div>
                         <div class="card-content">
-                            <h2>Understanding Macronutrients</h2>
-                            <p>Learn about carbohydrates, proteins, and fats and their roles in maintaining optimal health and energy levels. This comprehensive guide covers daily requirements and food sources.</p>
+                            <h2>
+                                <?php echo $row["module_title"]; ?>
+                            </h2>
+                            <p><?php echo $row["module_content"]; ?></p>
                         </div>
                         <div class="card-actions">
-                            <a href="./module-detail.php?id=1" class="start-module-btn">
+                            <a href="./module-detail.php?id=<?php echo $row["module_id"]; ?>" class="start-module-btn">
                                 Start Learning
                                 <i class="fa-solid fa-play"></i>
                             </a>
                         </div>
                     </article>
-
-                    <article class="module-card" data-category="diet" data-date="2024-03-12" data-title="Meal Planning Fundamentals" data-content="Master the art of planning balanced, nutritious meals for the week while considering budget and dietary preferences" data-popularity="88">
-                        <div class="card-header">
-                            <div class="category-badge modules">
-                                <i class="fa-solid fa-book-open"></i>
-                                Modules
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/modules/module-2.jpg" alt="Meal Planning">
-                        </div>
-                        <div class="card-content">
-                            <h2>Meal Planning Fundamentals</h2>
-                            <p>Master the art of planning balanced, nutritious meals for the week while considering budget and dietary preferences. Includes practical templates and shopping lists.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./module-detail.php?id=2" class="start-module-btn">
-                                Start Learning
-                                <i class="fa-solid fa-play"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <article class="module-card" data-category="health" data-date="2024-03-10" data-title="Nutrition for Diabetes Management" data-content="Comprehensive guide to managing diabetes through proper nutrition, blood sugar control, and lifestyle modifications" data-popularity="76">
-                        <div class="card-header">
-                            <div class="category-badge modules">
-                                <i class="fa-solid fa-book-open"></i>
-                                Modules
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/modules/module-3.jpg" alt="Diabetes Nutrition">
-                        </div>
-                        <div class="card-content">
-                            <h2>Nutrition for Diabetes Management</h2>
-                            <p>Comprehensive guide to managing diabetes through proper nutrition, blood sugar control, and lifestyle modifications. Evidence-based strategies for better health outcomes.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./module-detail.php?id=3" class="start-module-btn">
-                                Start Learning
-                                <i class="fa-solid fa-play"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <article class="module-card" data-category="cooking" data-date="2024-03-08" data-title="Healthy Cooking Techniques" data-content="Learn essential cooking methods that preserve nutrients while creating delicious, healthy meals for you and your family" data-popularity="91">
-                        <div class="card-header">
-                            <div class="category-badge modules">
-                                <i class="fa-solid fa-book-open"></i>
-                                Modules
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/modules/module-4.jpg" alt="Cooking Techniques">
-                        </div>
-                        <div class="card-content">
-                            <h2>Healthy Cooking Techniques</h2>
-                            <p>Learn essential cooking methods that preserve nutrients while creating delicious, healthy meals for you and your family. Includes video demonstrations and recipes.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./module-detail.php?id=4" class="start-module-btn">
-                                Start Learning
-                                <i class="fa-solid fa-play"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <article class="module-card" data-category="basics" data-date="2024-03-05" data-title="Micronutrients and Vitamins" data-content="Deep dive into essential vitamins and minerals, their functions, deficiency symptoms, and best food sources" data-popularity="83">
-                        <div class="card-header">
-                            <div class="category-badge modules">
-                                <i class="fa-solid fa-book-open"></i>
-                                Modules
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/modules/module-5.jpg" alt="Micronutrients">
-                        </div>
-                        <div class="card-content">
-                            <h2>Micronutrients and Vitamins</h2>
-                            <p>Deep dive into essential vitamins and minerals, their functions, deficiency symptoms, and best food sources. Understand how to meet your daily requirements naturally.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./module-detail.php?id=5" class="start-module-btn">
-                                Start Learning
-                                <i class="fa-solid fa-play"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <article class="module-card" data-category="diet" data-date="2024-03-01" data-title="Reading Nutrition Labels" data-content="Master the skill of reading and interpreting nutrition labels to make informed food choices for better health" data-popularity="94">
-                        <div class="card-header">
-                            <div class="category-badge modules">
-                                <i class="fa-solid fa-book-open"></i>
-                                Modules
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/modules/module-6.jpg" alt="Nutrition Labels">
-                        </div>
-                        <div class="card-content">
-                            <h2>Reading Nutrition Labels</h2>
-                            <p>Master the skill of reading and interpreting nutrition labels to make informed food choices for better health. Includes interactive examples and practice exercises.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./module-detail.php?id=6" class="start-module-btn">
-                                Start Learning
-                                <i class="fa-solid fa-play"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <article class="module-card" data-category="health" data-date="2024-02-28" data-title="Heart-Healthy Nutrition" data-content="Learn how to support cardiovascular health through strategic nutrition choices and lifestyle modifications" data-popularity="79">
-                        <div class="card-header">
-                            <div class="category-badge modules">
-                                <i class="fa-solid fa-book-open"></i>
-                                Modules
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/modules/module-1.jpg" alt="Heart Health">
-                        </div>
-                        <div class="card-content">
-                            <h2>Heart-Healthy Nutrition</h2>
-                            <p>Learn how to support cardiovascular health through strategic nutrition choices and lifestyle modifications. Evidence-based approaches to heart disease prevention.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./module-detail.php?id=7" class="start-module-btn">
-                                Start Learning
-                                <i class="fa-solid fa-play"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <article class="module-card" data-category="cooking" data-date="2024-02-25" data-title="Advanced Meal Prep Strategies" data-content="Optimize your meal preparation with advanced techniques for batch cooking, food safety, and storage solutions" data-popularity="72">
-                        <div class="card-header">
-                            <div class="category-badge modules">
-                                <i class="fa-solid fa-book-open"></i>
-                                Modules
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/modules/module-2.jpg" alt="Meal Prep">
-                        </div>
-                        <div class="card-content">
-                            <h2>Advanced Meal Prep Strategies</h2>
-                            <p>Optimize your meal preparation with advanced techniques for batch cooking, food safety, and storage solutions. Perfect for busy professionals and families.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./module-detail.php?id=8" class="start-module-btn">
-                                Start Learning
-                                <i class="fa-solid fa-play"></i>
-                            </a>
-                        </div>
-                    </article>
+                    <?php
+                            }
+                        } else {
+                            echo "<p>No modules found.</p>";
+                        }
+                    ?>
                 </div>
 
                 <div class="pagination" id="pagination">

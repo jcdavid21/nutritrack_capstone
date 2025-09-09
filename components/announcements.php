@@ -61,7 +61,17 @@ include_once '../backend/config.php';
         <div class="announcements-section">
             <div class="announcements-container">
                 <div class="announcements-grid" id="announcementsGrid">
-                    <article class="announcement-card" data-category="programs" data-date="2024-03-15" data-title="Community Feeding Program Launch" data-content="We're excited to announce the launch of our new community feeding program designed to provide nutritious meals to families in need. This initiative aims to combat malnutrition and promote healthy eating habits within our community.">
+                    <?php 
+                        $query_anc = "SELECT ta.username, tz.zone_name, tba.announcement_id, tba.content, tba.img_content, tba.title, tba.post_date FROM tbl_announcements tba JOIN tbl_user ta ON tba.user_id = ta.user_id JOIN tbl_barangay tz ON tba.zone_id = tz.zone_id ORDER BY tba.post_date DESC";
+                        $result_anc = $conn->query($query_anc);
+                        if ($result_anc && $result_anc->num_rows > 0) {
+                            while ($data_anc = $result_anc->fetch_assoc()) {
+                    ?>
+                    <article class="announcement-card" 
+                             data-category="programs" 
+                             data-date="<?php echo htmlspecialchars($data_anc['post_date']); ?>" 
+                             data-title="<?php echo htmlspecialchars($data_anc['title']); ?>" 
+                             data-content="<?php echo htmlspecialchars($data_anc['content']); ?>">
                         <div class="card-header">
                             <div class="category-badge announcements">
                                 <i class="fa-solid fa-bullhorn"></i>
@@ -69,206 +79,30 @@ include_once '../backend/config.php';
                             </div>
                             <div class="date-badge">
                                 <i class="fa-solid fa-calendar"></i>
-                                March 15, 2024
+                                <?php 
+                                    $formatted_date = date('M d, Y', strtotime($data_anc["post_date"]));
+                                    echo $formatted_date;
+                                ?>
                             </div>
                         </div>
                         <div class="card-image">
-                            <img src="../assets/announcements/anc-1.png" alt="Feeding Program">
+                            <img src="../assets/announcements/<?php echo htmlspecialchars($data_anc['img_content']); ?>" alt="<?php echo htmlspecialchars($data_anc['title']); ?>">
                         </div>
                         <div class="card-content">
-                            <h2>Community Feeding Program Launch</h2>
-                            <p>We're excited to announce the launch of our new community feeding program designed to provide nutritious meals to families in need. This initiative aims to combat malnutrition and promote healthy eating habits within our community.</p>
+                            <h2><?php echo htmlspecialchars($data_anc['title']); ?></h2>
+                            <p><?php echo htmlspecialchars(substr($data_anc['content'], 0, 150)) . (strlen($data_anc['content']) > 150 ? '...' : ''); ?></p>
                         </div>
                         <div class="card-actions">
-                            <a href="./announcement-detail.php?id=1" class="read-more-btn">
+                            <a href="./announcement-detail.php?id=<?php echo $data_anc['announcement_id']; ?>" class="read-more-btn">
                                 Read More
                                 <i class="fa-solid fa-arrow-right"></i>
                             </a>
                         </div>
                     </article>
-
-                    <article class="announcement-card" data-category="updates" data-date="2024-03-12" data-title="NutritionTrack App Update 2.1" data-content="Our latest app update includes new features for better meal tracking, improved user interface, and enhanced nutrition analytics. Download the update to experience improved performance and new functionalities.">
-                        <div class="card-header">
-                            <div class="category-badge announcements">
-                                <i class="fa-solid fa-bullhorn"></i>
-                                Announcements
-                            </div>
-                            <div class="date-badge">
-                                <i class="fa-solid fa-calendar"></i>
-                                March 12, 2024
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/announcements/anc-2.png" alt="App Update">
-                        </div>
-                        <div class="card-content">
-                            <h2>NutritionTrack App Update 2.1</h2>
-                            <p>Our latest app update includes new features for better meal tracking, improved user interface, and enhanced nutrition analytics. Download the update to experience improved performance and new functionalities.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./announcement-detail.php?id=2" class="read-more-btn">
-                                Read More
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <article class="announcement-card" data-category="events" data-date="2024-03-10" data-title="Nutrition Workshop Series" data-content="Join our comprehensive nutrition workshop series featuring expert nutritionists and dietitians. Learn about balanced diets, meal planning, and healthy cooking techniques in interactive sessions.">
-                        <div class="card-header">
-                            <div class="category-badge announcements">
-                                <i class="fa-solid fa-bullhorn"></i>
-                                Announcements
-                            </div>
-                            <div class="date-badge">
-                                <i class="fa-solid fa-calendar"></i>
-                                March 10, 2024
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/announcements/anc-3.png" alt="Nutrition Workshop">
-                        </div>
-                        <div class="card-content">
-                            <h2>Nutrition Workshop Series</h2>
-                            <p>Join our comprehensive nutrition workshop series featuring expert nutritionists and dietitians. Learn about balanced diets, meal planning, and healthy cooking techniques in interactive sessions.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./announcement-detail.php?id=3" class="read-more-btn">
-                                Read More
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <article class="announcement-card" data-category="news" data-date="2024-03-08" data-title="Partnership with Local Health Centers" data-content="We're proud to announce our new partnership with local health centers to provide comprehensive nutrition counseling and support services to community members seeking healthier lifestyles.">
-                        <div class="card-header">
-                            <div class="category-badge announcements">
-                                <i class="fa-solid fa-bullhorn"></i>
-                                Announcements
-                            </div>
-                            <div class="date-badge">
-                                <i class="fa-solid fa-calendar"></i>
-                                March 8, 2024
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/announcements/anc-4.png" alt="Partnership News">
-                        </div>
-                        <div class="card-content">
-                            <h2>Partnership with Local Health Centers</h2>
-                            <p>We're proud to announce our new partnership with local health centers to provide comprehensive nutrition counseling and support services to community members seeking healthier lifestyles.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./announcement-detail.php?id=4" class="read-more-btn">
-                                Read More
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <!-- Announcement Item 5 -->
-                    <article class="announcement-card" data-category="programs" data-date="2024-03-05" data-title="School Nutrition Education Program" data-content="Introducing our new school-based nutrition education program aimed at teaching children about healthy eating habits, food groups, and the importance of balanced nutrition from an early age.">
-                        <div class="card-header">
-                            <div class="category-badge announcements">
-                                <i class="fa-solid fa-bullhorn"></i>
-                                Announcements
-                            </div>
-                            <div class="date-badge">
-                                <i class="fa-solid fa-calendar"></i>
-                                March 5, 2024
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/announcements/anc-5.png" alt="School Program">
-                        </div>
-                        <div class="card-content">
-                            <h2>School Nutrition Education Program</h2>
-                            <p>Introducing our new school-based nutrition education program aimed at teaching children about healthy eating habits, food groups, and the importance of balanced nutrition from an early age.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./announcement-detail.php?id=5" class="read-more-btn">
-                                Read More
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <article class="announcement-card" data-category="updates" data-date="2024-03-01" data-title="New Recipe Database Launch" data-content="Explore our newly launched recipe database featuring over 1000 healthy recipes with detailed nutritional information, cooking instructions, and dietary classifications to support your meal planning.">
-                        <div class="card-header">
-                            <div class="category-badge announcements">
-                                <i class="fa-solid fa-bullhorn"></i>
-                                Announcements
-                            </div>
-                            <div class="date-badge">
-                                <i class="fa-solid fa-calendar"></i>
-                                March 1, 2024
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/announcements/anc-6.png" alt="Platform Update">
-                        </div>
-                        <div class="card-content">
-                            <h2>New Recipe Database Launch</h2>
-                            <p>Explore our newly launched recipe database featuring over 1000 healthy recipes with detailed nutritional information, cooking instructions, and dietary classifications to support your meal planning.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./announcement-detail.php?id=6" class="read-more-btn">
-                                Read More
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <article class="announcement-card" data-category="events" data-date="2024-02-28" data-title="Health Screening Event" data-content="Join us for a free community health screening event where you can check your BMI, blood pressure, and receive nutritional guidance from our certified professionals.">
-                        <div class="card-header">
-                            <div class="category-badge announcements">
-                                <i class="fa-solid fa-bullhorn"></i>
-                                Announcements
-                            </div>
-                            <div class="date-badge">
-                                <i class="fa-solid fa-calendar"></i>
-                                February 28, 2024
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/announcements/anc-1.png" alt="Health Screening">
-                        </div>
-                        <div class="card-content">
-                            <h2>Health Screening Event</h2>
-                            <p>Join us for a free community health screening event where you can check your BMI, blood pressure, and receive nutritional guidance from our certified professionals.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./announcement-detail.php?id=7" class="read-more-btn">
-                                Read More
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </a>
-                        </div>
-                    </article>
-
-                    <article class="announcement-card" data-category="news" data-date="2024-02-25" data-title="New Research Findings" data-content="Recent studies show significant improvements in community health metrics following our nutrition programs. Read about the positive impact we're making together.">
-                        <div class="card-header">
-                            <div class="category-badge announcements">
-                                <i class="fa-solid fa-bullhorn"></i>
-                                Announcements
-                            </div>
-                            <div class="date-badge">
-                                <i class="fa-solid fa-calendar"></i>
-                                February 25, 2024
-                            </div>
-                        </div>
-                        <div class="card-image">
-                            <img src="../assets/announcements/anc-2.png" alt="Research">
-                        </div>
-                        <div class="card-content">
-                            <h2>New Research Findings</h2>
-                            <p>Recent studies show significant improvements in community health metrics following our nutrition programs. Read about the positive impact we're making together.</p>
-                        </div>
-                        <div class="card-actions">
-                            <a href="./announcement-detail.php?id=8" class="read-more-btn">
-                                Read More
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </a>
-                        </div>
-                    </article>
+                    <?php
+                        } 
+                    }
+                    ?>
                 </div>
 
                 <div class="pagination" id="pagination">
@@ -297,12 +131,14 @@ include_once '../backend/config.php';
                 this.filteredAnnouncements = [];
                 this.currentPage = 1;
                 this.itemsPerPage = 6;
+                this.searchTimeout = null;
                 this.init();
             }
 
             init() {
                 this.loadAnnouncements();
                 this.setupEventListeners();
+                this.applyInitialSort();
                 this.displayAnnouncements();
                 this.setupPagination();
             }
@@ -310,35 +146,43 @@ include_once '../backend/config.php';
             loadAnnouncements() {
                 const cards = document.querySelectorAll('.announcement-card');
                 this.allAnnouncements = Array.from(cards).map(card => ({
-                    element: card,
-                    category: card.getAttribute('data-category'),
+                    element: card.cloneNode(true), // Clone to preserve original
+                    category: card.getAttribute('data-category') || 'programs',
                     date: card.getAttribute('data-date'),
-                    title: card.getAttribute('data-title').toLowerCase(),
-                    content: card.getAttribute('data-content').toLowerCase()
+                    title: (card.getAttribute('data-title') || '').toLowerCase(),
+                    content: (card.getAttribute('data-content') || '').toLowerCase(),
+                    originalElement: card
                 }));
+                
+                // Hide all original cards initially
+                cards.forEach(card => card.style.display = 'none');
+                
                 this.filteredAnnouncements = [...this.allAnnouncements];
             }
 
             setupEventListeners() {
-
+                // Search input with debouncing
                 const searchInput = document.getElementById('searchInput');
                 searchInput.addEventListener('input', (e) => {
-                    this.filterAnnouncements();
+                    clearTimeout(this.searchTimeout);
+                    this.searchTimeout = setTimeout(() => {
+                        this.filterAnnouncements();
+                    }, 300); // 300ms delay for better performance
                 });
 
-
+                // Category filter
                 const categoryFilter = document.getElementById('categoryFilter');
                 categoryFilter.addEventListener('change', (e) => {
                     this.filterAnnouncements();
                 });
 
-
+                // Date filter
                 const dateFilter = document.getElementById('dateFilter');
                 dateFilter.addEventListener('change', (e) => {
                     this.sortAnnouncements();
                 });
 
-
+                // Pagination buttons
                 document.getElementById('prevBtn').addEventListener('click', () => {
                     if (this.currentPage > 1) {
                         this.currentPage--;
@@ -357,23 +201,37 @@ include_once '../backend/config.php';
                 });
             }
 
+            applyInitialSort() {
+                // Sort by latest first initially
+                this.filteredAnnouncements.sort((a, b) => {
+                    const dateA = new Date(a.date);
+                    const dateB = new Date(b.date);
+                    return dateB - dateA; // Latest first
+                });
+            }
+
             filterAnnouncements() {
-                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
                 const selectedCategory = document.getElementById('categoryFilter').value;
 
                 this.filteredAnnouncements = this.allAnnouncements.filter(announcement => {
-                    const matchesSearch = announcement.title.includes(searchTerm) || 
+                    // Search match
+                    const matchesSearch = searchTerm === '' || 
+                                        announcement.title.includes(searchTerm) || 
                                         announcement.content.includes(searchTerm);
+                    
+                    // Category match
                     const matchesCategory = selectedCategory === 'all' || 
                                           announcement.category === selectedCategory;
                     
                     return matchesSearch && matchesCategory;
                 });
 
+                // Reset to first page when filtering
                 this.currentPage = 1;
+                
+                // Apply current sorting
                 this.sortAnnouncements();
-                this.displayAnnouncements();
-                this.setupPagination();
             }
 
             sortAnnouncements() {
@@ -398,22 +256,27 @@ include_once '../backend/config.php';
                 const startIndex = (this.currentPage - 1) * this.itemsPerPage;
                 const endIndex = startIndex + this.itemsPerPage;
                 
+                // Clear grid except for no results message
+                const noResultsMsg = document.getElementById('noResultsMessage');
+                grid.innerHTML = '';
+                if (noResultsMsg) {
+                    grid.appendChild(noResultsMsg);
+                }
 
-                this.allAnnouncements.forEach(announcement => {
-                    announcement.element.style.display = 'none';
-                });
-
-
-                this.filteredAnnouncements.slice(startIndex, endIndex).forEach(announcement => {
-                    announcement.element.style.display = 'block';
-                });
-
-
+                // Check if there are any results
                 if (this.filteredAnnouncements.length === 0) {
                     this.showNoResults();
-                } else {
-                    this.hideNoResults();
+                    this.hidePagination();
+                    return;
                 }
+
+                this.hideNoResults();
+
+                // Display current page announcements
+                const currentPageAnnouncements = this.filteredAnnouncements.slice(startIndex, endIndex);
+                currentPageAnnouncements.forEach(announcement => {
+                    grid.appendChild(announcement.element);
+                });
 
                 this.updatePagination();
             }
@@ -427,15 +290,18 @@ include_once '../backend/config.php';
                     noResultsMsg.id = 'noResultsMessage';
                     noResultsMsg.className = 'no-results-message';
                     noResultsMsg.innerHTML = `
-                        <div style="text-align: center; padding: 60px 20px; color: #666;">
+                        <div style="text-align: center; padding: 60px 20px; color: #666; grid-column: 1 / -1;">
                             <i class="fa-solid fa-search" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i>
-                            <h3>No announcements found</h3>
+                            <h3 style="margin-bottom: 10px;">No announcements found</h3>
                             <p>Try adjusting your search terms or filters</p>
                         </div>
                     `;
+                }
+                
+                noResultsMsg.style.display = 'block';
+                if (!grid.contains(noResultsMsg)) {
                     grid.appendChild(noResultsMsg);
                 }
-                noResultsMsg.style.display = 'block';
             }
 
             hideNoResults() {
@@ -445,63 +311,85 @@ include_once '../backend/config.php';
                 }
             }
 
+            hidePagination() {
+                document.getElementById('pagination').style.display = 'none';
+            }
+
             setupPagination() {
                 const totalPages = Math.ceil(this.filteredAnnouncements.length / this.itemsPerPage);
-                const paginationNumbers = document.getElementById('paginationNumbers');
                 
-                paginationNumbers.innerHTML = '';
-
                 if (totalPages <= 1) {
-                    document.getElementById('pagination').style.display = 'none';
+                    this.hidePagination();
                     return;
                 }
 
                 document.getElementById('pagination').style.display = 'flex';
-
-
-                for (let i = 1; i <= Math.min(totalPages, 5); i++) {
-                    const pageBtn = document.createElement('button');
-                    pageBtn.className = 'pagination-number';
-                    pageBtn.textContent = i;
-                    
-                    if (i === this.currentPage) {
-                        pageBtn.classList.add('active');
-                    }
-
-                    pageBtn.addEventListener('click', () => {
-                        this.currentPage = i;
-                        this.displayAnnouncements();
-                        this.updatePagination();
-                    });
-
-                    paginationNumbers.appendChild(pageBtn);
-                }
-
-
-                if (totalPages > 5) {
-                    const dots = document.createElement('span');
-                    dots.className = 'pagination-dots';
-                    dots.textContent = '...';
-                    paginationNumbers.appendChild(dots);
-
-                    const lastPageBtn = document.createElement('button');
-                    lastPageBtn.className = 'pagination-number';
-                    lastPageBtn.textContent = totalPages;
-                    
-                    if (totalPages === this.currentPage) {
-                        lastPageBtn.classList.add('active');
-                    }
-
-                    lastPageBtn.addEventListener('click', () => {
-                        this.currentPage = totalPages;
-                        this.displayAnnouncements();
-                        this.updatePagination();
-                    });
-
-                    paginationNumbers.appendChild(lastPageBtn);
-                }
-
+                this.renderPaginationNumbers(totalPages);
                 this.updatePagination();
+            }
+
+            renderPaginationNumbers(totalPages) {
+                const paginationNumbers = document.getElementById('paginationNumbers');
+                paginationNumbers.innerHTML = '';
+
+                // Always show first page
+                this.createPageButton(1, paginationNumbers);
+
+                if (totalPages <= 7) {
+                    // Show all pages if 7 or fewer
+                    for (let i = 2; i <= totalPages; i++) {
+                        this.createPageButton(i, paginationNumbers);
+                    }
+                } else {
+                    // Complex pagination for more than 7 pages
+                    if (this.currentPage <= 4) {
+                        // Show pages 2-5 and then dots + last page
+                        for (let i = 2; i <= 5; i++) {
+                            this.createPageButton(i, paginationNumbers);
+                        }
+                        this.createDots(paginationNumbers);
+                        this.createPageButton(totalPages, paginationNumbers);
+                    } else if (this.currentPage >= totalPages - 3) {
+                        // Show first + dots + last 5 pages
+                        this.createDots(paginationNumbers);
+                        for (let i = totalPages - 4; i <= totalPages; i++) {
+                            this.createPageButton(i, paginationNumbers);
+                        }
+                    } else {
+                        // Show first + dots + current-1, current, current+1 + dots + last
+                        this.createDots(paginationNumbers);
+                        for (let i = this.currentPage - 1; i <= this.currentPage + 1; i++) {
+                            this.createPageButton(i, paginationNumbers);
+                        }
+                        this.createDots(paginationNumbers);
+                        this.createPageButton(totalPages, paginationNumbers);
+                    }
+                }
+            }
+
+            createPageButton(pageNum, container) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = 'pagination-number';
+                pageBtn.textContent = pageNum;
+                
+                if (pageNum === this.currentPage) {
+                    pageBtn.classList.add('active');
+                }
+
+                pageBtn.addEventListener('click', () => {
+                    this.currentPage = pageNum;
+                    this.displayAnnouncements();
+                    this.updatePagination();
+                });
+
+                container.appendChild(pageBtn);
+            }
+
+            createDots(container) {
+                const dots = document.createElement('span');
+                dots.className = 'pagination-dots';
+                dots.textContent = '...';
+                container.appendChild(dots);
             }
 
             updatePagination() {
@@ -509,9 +397,11 @@ include_once '../backend/config.php';
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
 
+                // Update button states
                 prevBtn.disabled = this.currentPage === 1;
                 nextBtn.disabled = this.currentPage === totalPages || totalPages === 0;
 
+                // Update active page number
                 document.querySelectorAll('.pagination-number').forEach(btn => {
                     btn.classList.remove('active');
                     if (parseInt(btn.textContent) === this.currentPage) {
@@ -519,12 +409,31 @@ include_once '../backend/config.php';
                     }
                 });
 
+                // Re-render pagination if needed (for complex pagination)
+                if (totalPages > 7) {
+                    this.renderPaginationNumbers(totalPages);
+                }
+
+                // Smooth scroll to top
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
+        // Initialize when DOM is loaded with additional safety checks
         document.addEventListener('DOMContentLoaded', () => {
-            new AnnouncementManager();
+            // Wait a bit more to ensure all elements are rendered
+            setTimeout(() => {
+                console.log('Initializing AnnouncementManager...');
+                const cards = document.querySelectorAll('.announcement-card');
+                console.log('Found cards:', cards.length);
+                
+                if (cards.length === 0) {
+                    console.error('No announcement cards found! Check your PHP query and HTML structure.');
+                    return;
+                }
+                
+                new AnnouncementManager();
+            }, 100);
         });
     </script>
 </body>

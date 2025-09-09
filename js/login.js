@@ -1,8 +1,6 @@
 const container = document.querySelector(".container"),
     pwShowHide = document.querySelectorAll(".showHidePw"),
-    pwFields = document.querySelectorAll(".password"),
-    signUp = document.querySelector(".signup-link"),
-    login = document.querySelector(".login-link");
+    pwFields = document.querySelectorAll(".password");
 // js code to show/hide password and change icon
 pwShowHide.forEach((eyeIcon) => {
     eyeIcon.addEventListener("click", () => {
@@ -21,23 +19,15 @@ pwShowHide.forEach((eyeIcon) => {
         });
     });
 });
-// js code to appear signup and login form
-signUp.addEventListener("click", (e) => {
-    e.preventDefault();
-    container.classList.add("active");
-});
-login.addEventListener("click", (e) => {
-    e.preventDefault();
-    container.classList.remove("active");
-});
+
 
 $(document).ready(function () {
     $("#login").on("click", function (e) {
         e.preventDefault();
-        const login_email = $(this).closest(".login").find("#email").val();
+        const username = $(this).closest(".login").find("#username").val();
         const login_password = $(this).closest(".login").find("#password").val();
 
-        if (login_email == "" || login_password == "") {
+        if (username == "" || login_password == "") {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
@@ -50,7 +40,7 @@ $(document).ready(function () {
             url: "../backend/users/login.php",
             method: "POST",
             data: {
-                email: login_email,
+                username: username,
                 password: login_password
             },
             success: function (response) {
@@ -63,8 +53,20 @@ $(document).ready(function () {
                     }).then((isConfirmed) => {
                         if (isConfirmed.isConfirmed && responseData.role_id === 1) {
                             window.location.href = "./menu.php";
+                        }else if(isConfirmed.isConfirmed && responseData.role_id === 2){
+                            window.location.href = "../admin/dashboard.php";
+                        }else if(isConfirmed.isConfirmed && responseData.role_id === 3){
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Still working on it!',
+                                text: 'This role access is still under development. Please check back soon.',
+                            });
                         }else{
-                            window.location.href = "../admin/index.php";
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'No Permission',
+                                text: 'Your account does not have permission to access any dashboard.',
+                            });
                         }
                     });
                 } else if (responseData.status === "error") {

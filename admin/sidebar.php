@@ -564,19 +564,42 @@
                             <i class="fas fa-bullhorn"></i>
                         </div>
                         <span class="nav-text">Announcements</span>
-                        <span class="nav-badge">3</span>
+                        <span class="nav-badge">
+                            <?php 
+                                $anc_count = "SELECT COUNT(*) as count FROM tbl_announcements";
+                                $result_anc_count = mysqli_query($conn, $anc_count);
+                                $count_anc = 0;
+                                if ($result_anc_count && $result_anc_count->num_rows > 0) {
+                                    $data_anc_count = $result_anc_count->fetch_assoc();
+                                    $count_anc = $data_anc_count['count'];
+                                }
+                                echo $count_anc;
+                            ?>
+                        </span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tooltip="Event Scheduler">
+                    <a href="./event_scheduler.php" class="nav-link  <?php echo (basename($_SERVER['PHP_SELF']) == 'event_scheduler.php') ? 'active' : ''; ?>" data-tooltip="Event Scheduler">
                         <div class="nav-icon">
                             <i class="fas fa-calendar-alt"></i>
                         </div>
                         <span class="nav-text">Event Scheduler</span>
+                        <span class="nav-badge">
+                            <?php 
+                                $event_count = "SELECT COUNT(*) as count FROM tbl_events WHERE event_date >= CURDATE()";
+                                $result_event_count = mysqli_query($conn, $event_count);
+                                $count_event = 0;
+                                if ($result_event_count && $result_event_count->num_rows > 0) {
+                                    $data_event_count = $result_event_count->fetch_assoc();
+                                    $count_event = $data_event_count['count'];
+                                }
+                                echo $count_event;
+                            ?>
+                        </span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tooltip="Educational Resources">
+                    <a href="./modules.php" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'modules.php') ? 'active' : ''; ?>" data-tooltip="Educational Resources">
                         <div class="nav-icon">
                             <i class="fas fa-book"></i>
                         </div>
@@ -588,7 +611,7 @@
             <div class="nav-section">
                 <div class="nav-section-title">Profile & Child Data</div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tooltip="User Management">
+                    <a href="./user_management.php" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'user_management.php') ? 'active' : ''; ?>" data-tooltip="User Management">
                         <div class="nav-icon">
                             <i class="fas fa-user"></i>
                         </div>
@@ -596,11 +619,19 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tooltip="Manage Child Records">
+                    <a href="./child_records.php" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'child_records.php') ? 'active' : ''; ?>" data-tooltip="Manage Child Records">
                         <div class="nav-icon">
                             <i class="fas fa-child"></i>
                         </div>
                         <span class="nav-text">Manage Child Records</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="./vaccine_records.php" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'vaccine_records.php') ? 'active' : ''; ?>" data-tooltip="Manage Vaccine Records">
+                        <div class="nav-icon">
+                            <i class="fas fa-syringe"></i>
+                        </div>
+                        <span class="nav-text">Vaccine Records</span>
                     </a>
                 </div>
             </div>
@@ -608,7 +639,7 @@
             <div class="nav-section">
                 <div class="nav-section-title">Reports Management</div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tooltip="Flagged Records">
+                    <a href="./flagged_records.php" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'flagged_records.php') ? 'active' : ''; ?>" data-tooltip="Flagged Records">
                         <div class="nav-icon">
                             <i class="fas fa-flag"></i>
                         </div>
@@ -616,7 +647,7 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tooltip="Reports">
+                    <a href="./reports.php" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'reports.php') ? 'active' : ''; ?>" data-tooltip="Reports">
                         <div class="nav-icon">
                             <i class="fas fa-chart-bar"></i>
                         </div>
@@ -626,29 +657,9 @@
             </div>
 
             <div class="nav-section">
-                <div class="nav-section-title">Analytics</div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" data-tooltip="Area Analytics & Alerts">
-                        <div class="nav-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <span class="nav-text">Area Analytics & Alerts</span>
-                    </a>
-                </div>
-            </div>
-
-            <div class="nav-section">
                 <div class="nav-section-title">Activity History</div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-tooltip="Audit Logs">
-                        <div class="nav-icon">
-                            <i class="fa-solid fa-right-from-bracket"></i>
-                        </div>
-                        <span class="nav-text">Audit Logs</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" data-tooltip="Audit Trail">
+                    <a href="./audit_trail.php" class="nav-link" data-tooltip="Audit Trail">
                         <div class="nav-icon">
                             <i class="fas fa-history"></i>
                         </div>

@@ -1,4 +1,4 @@
-/* Learning Modules Page Styles */
+
 :root {
     --primary-color: #2E7D32;
     --secondary-color: #81C784;
@@ -10,7 +10,7 @@
     --card-shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 
-/* Hero Section */
+
 .hero-section {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: white;
@@ -402,7 +402,6 @@
     transform: translateX(3px);
 }
 
-/* No Results Message */
 .no-results-message {
     grid-column: 1 / -1;
     text-align: center;
@@ -431,7 +430,6 @@
     font-size: 16px;
 }
 
-/* Pagination */
 .pagination {
     display: flex;
     justify-content: center;
