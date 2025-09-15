@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Sep 09, 2025 at 03:31 PM
+-- Generation Time: Sep 15, 2025 at 12:52 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -48,7 +48,7 @@ INSERT INTO `tbl_announcements` (`announcement_id`, `title`, `user_id`, `zone_id
 (4, 'Announcement', 1001, NULL, 'New feeding program launching March 1, 2024. Malnourished children will receive supplementary nutrition.', 'anc-1.png', '2024-02-25 09:45:00'),
 (5, 'Announcement', 1005, 5, 'Growth monitoring session on March 10, 2024. Early detection of malnutrition is crucial for child development.', 'anc-1.png', '2024-03-05 11:20:00'),
 (6, 'Announcement', 1007, 7, 'Community Health Fair on March 20, 2024. Free consultations and health screening available.', 'anc-1.png', '2024-03-15 16:30:00'),
-(7, 'Announcement', 1000, 8, 'Catch-up immunization program for children with incomplete vaccines. Schedule: March 25, 2024', 'announcement_7_1757058418.png', '2025-09-05 16:02:47');
+(7, 'Announcement', 1000, 8, 'Catch-up immunization program for children with incomplete vaccines. Schedule: March 25, 2024', 'announcement_7_1757058418.png', '2025-09-14 17:44:57');
 
 -- --------------------------------------------------------
 
@@ -173,7 +173,83 @@ INSERT INTO `tbl_audit_log` (`log_id`, `user_id`, `activity_type`, `log_date`) V
 (109, 1000, 'User logged in', '2025-09-08 21:18:29'),
 (110, 1000, 'User logged in', '2025-09-08 21:28:23'),
 (111, 1000, 'User logged in', '2025-09-08 22:13:01'),
-(112, 1000, 'Deleted module with ID: 8', '2025-09-08 16:13:12');
+(112, 1000, 'Deleted module with ID: 8', '2025-09-08 16:13:12'),
+(113, 1000, 'User logged in', '2025-09-09 21:42:08'),
+(114, 1000, 'User logged in', '2025-09-09 21:43:35'),
+(115, 1000, 'User logged in', '2025-09-09 21:44:05'),
+(116, 1000, 'User logged in', '2025-09-10 13:57:19'),
+(117, 1000, 'User logged in', '2025-09-10 13:57:45'),
+(118, 1000, 'User logged in', '2025-09-14 17:39:33'),
+(119, 1000, 'User logged in', '2025-09-14 17:43:56'),
+(120, 1000, 'Updated announcement with ID: 7', '2025-09-14 17:44:51'),
+(121, 1000, 'Updated announcement with ID: 7', '2025-09-14 17:44:57'),
+(122, 1000, 'Updated user with ID: 1004', '2025-09-14 17:47:18'),
+(123, 1000, 'Activated user account (User ID: 1009)', '2025-09-14 18:08:47'),
+(124, 1000, 'Created new user with ID: 1010', '2025-09-14 18:10:38'),
+(125, 1000, 'Added vaccine record with ID: 19 for child ID: 9', '2025-09-14 19:46:11'),
+(126, 1000, 'Deleted vaccine record with ID: 19', '2025-09-14 19:57:13'),
+(127, 1000, 'Updated parent details (Parent ID: 4)', '2025-09-14 22:39:53'),
+(128, 1000, 'Updated parent details (Parent ID: 4)', '2025-09-14 22:40:06'),
+(129, 1000, 'Updated parent details (Parent ID: 4)', '2025-09-14 22:40:17'),
+(130, 1000, 'Deleted parent record (Parent ID: 4)', '2025-09-14 22:43:49'),
+(131, 1000, 'Updated nutrition record with ID: 241', '2025-09-14 23:40:22'),
+(132, 1000, 'Updated nutrition record with ID: 238', '2025-09-14 23:44:30'),
+(133, 1000, 'Updated nutrition record with ID: 227', '2025-09-14 23:46:36'),
+(134, 1000, 'User logged in', '2025-09-15 10:04:20'),
+(135, 1000, 'Added flagged record with ID: 9 for child ID: 9', '2025-09-15 12:12:55'),
+(136, 1000, 'Deleted flagged record with ID: 1', '2025-09-15 12:16:45'),
+(137, 1000, 'Updated report with ID: 5', '2025-09-15 12:19:25'),
+(138, 1000, 'Updated report with ID: 5', '2025-09-15 12:44:38'),
+(139, 1000, 'Generated report with ID: 10 for child ID: 4', '2025-09-15 13:17:19'),
+(140, 1000, 'Deleted flagged record with ID: 9', '2025-09-15 14:06:06'),
+(141, 1000, 'Deleted flagged record with ID: 3', '2025-09-15 14:06:09'),
+(142, 1000, 'Deleted flagged record with ID: 2', '2025-09-15 14:06:12'),
+(143, 1000, 'Deleted flagged record with ID: 5', '2025-09-15 14:06:16'),
+(144, 1000, 'Deleted flagged record with ID: 4', '2025-09-15 14:06:20'),
+(145, 1000, 'Added flagged record with ID: 10 for child ID: 9', '2025-09-15 14:06:34'),
+(146, 1000, 'Added flagged record with ID: 11 for child ID: 4', '2025-09-15 14:06:44'),
+(147, 1000, 'Added flagged record with ID: 12 for child ID: 6', '2025-09-15 14:07:03'),
+(148, 1000, 'Added flagged record with ID: 13 for child ID: 5', '2025-09-15 14:07:13'),
+(149, 1000, 'Added flagged record with ID: 14 for child ID: 1', '2025-09-15 14:07:27'),
+(150, 1000, 'Added flagged record with ID: 15 for child ID: 11', '2025-09-15 14:08:01'),
+(151, 1000, 'Added flagged record with ID: 16 for child ID: 3', '2025-09-15 14:09:37'),
+(152, 1000, 'Added flagged record with ID: 17 for child ID: 2', '2025-09-15 14:13:50'),
+(153, 1000, 'Added flagged record with ID: 18 for child ID: 10', '2025-09-15 14:14:57'),
+(154, 1000, 'Added flagged record with ID: 19 for child ID: 7', '2025-09-15 14:15:33'),
+(155, 1000, 'Added flagged record with ID: 20 for child ID: 3', '2025-09-15 14:15:56'),
+(156, 1000, 'Added flagged record with ID: 21 for child ID: 10', '2025-09-15 14:16:09'),
+(157, 1000, 'Updated flagged record with ID: 10', '2025-09-15 14:41:13'),
+(158, 1000, 'Updated flagged record with ID: 10', '2025-09-15 14:41:25'),
+(159, 1000, 'Updated flagged record with ID: 10', '2025-09-15 14:41:49'),
+(160, 1000, 'Added flagged record with ID: 22 for child ID: 13', '2025-09-15 15:01:29'),
+(161, 1000, 'Updated flagged record with ID: 22', '2025-09-15 15:17:08'),
+(162, 1000, 'Added flagged record with ID: 23 for child ID: 9', '2025-09-15 15:22:56'),
+(163, 1000, 'Added flagged record with ID: 24 for child ID: 4', '2025-09-15 15:23:06'),
+(164, 1000, 'Added flagged record with ID: 25 for child ID: 6', '2025-09-15 15:23:16'),
+(165, 1000, 'Added flagged record with ID: 26 for child ID: 5', '2025-09-15 15:23:24'),
+(166, 1000, 'Updated flagged record with ID: 25', '2025-09-15 15:24:45'),
+(167, 1000, 'Updated flagged record with ID: 25', '2025-09-15 15:27:48'),
+(168, 1000, 'Updated flagged record with ID: 25', '2025-09-15 15:31:40'),
+(169, 1000, 'Updated flagged record with ID: 26', '2025-09-15 15:33:13'),
+(170, 1000, 'Updated flagged record with ID: 23', '2025-09-15 15:36:49'),
+(171, 1000, 'Updated flagged record with ID: 23', '2025-09-15 15:37:42'),
+(172, 1000, 'Updated flagged record with ID: 23', '2025-09-15 15:40:02'),
+(173, 1000, 'Updated flagged record with ID: 23', '2025-09-15 15:41:43'),
+(174, 1000, 'Updated flagged record with ID: 23', '2025-09-15 15:41:54'),
+(175, 1000, 'Added flagged record with ID: 27 for child ID: 1', '2025-09-15 15:42:30'),
+(176, 1000, 'Deleted flagged record with ID: 24', '2025-09-15 15:42:36'),
+(177, 1000, 'Added flagged record with ID: 28 for child ID: 13', '2025-09-15 15:43:34'),
+(178, 1000, 'Added flagged record with ID: 29 for child ID: 11', '2025-09-15 15:43:42'),
+(179, 1000, 'Updated flagged record with ID: 28', '2025-09-15 15:43:56'),
+(180, 1000, 'Updated flagged record with ID: 28', '2025-09-15 15:44:14'),
+(181, 1000, 'Deleted flagged record with ID: 28', '2025-09-15 15:44:21'),
+(182, 1000, 'Added flagged record with ID: 30 for child ID: 2', '2025-09-15 18:11:46'),
+(183, 1000, 'Added flagged record with ID: 31 for child ID: 3', '2025-09-15 18:11:58'),
+(184, 1000, 'Added flagged record with ID: 32 for child ID: 2', '2025-09-15 18:29:40'),
+(185, 1000, 'Added flagged record with ID: 33 for child ID: 8', '2025-09-15 18:29:48'),
+(186, 1000, 'Added nutrition record for child ID: 6', '2025-09-15 18:51:03'),
+(187, 1000, 'Deleted parent record (Parent ID: 7)', '2025-09-15 18:51:28'),
+(188, 1000, 'Deleted nutrition record with ID: 387', '2025-09-15 18:51:51');
 
 -- --------------------------------------------------------
 
@@ -276,21 +352,28 @@ CREATE TABLE `tbl_flagged_record` (
   `issue_type` varchar(100) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `resolution_notes` text DEFAULT NULL,
-  `resolution_date` datetime DEFAULT current_timestamp(),
+  `resolution_date` datetime DEFAULT NULL,
   `date_flagged` datetime DEFAULT current_timestamp(),
-  `flagged_status` varchar(100) DEFAULT NULL
+  `flagged_status` varchar(100) DEFAULT NULL,
+  `resolution_type` varchar(50) DEFAULT NULL,
+  `current_status` varchar(100) DEFAULT NULL,
+  `follow_up_date` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `tbl_flagged_record`
 --
 
-INSERT INTO `tbl_flagged_record` (`flagged_id`, `child_id`, `issue_type`, `description`, `resolution_notes`, `resolution_date`, `date_flagged`, `flagged_status`) VALUES
-(1, 1, 'Underweight', NULL, NULL, '2025-09-07 22:35:18', '2024-01-21 10:00:00', 'Active'),
-(2, 2, 'Overweight', NULL, NULL, '2025-09-07 22:35:18', '2025-01-22 12:00:00', 'Active'),
-(3, 3, 'Underweight', NULL, NULL, '2025-09-07 22:35:18', '2025-01-22 16:00:00', 'Under Review'),
-(4, 4, 'Severely Underweight', NULL, NULL, '2025-09-07 22:35:18', '2024-01-24 11:00:00', 'Active'),
-(5, 5, 'Incomplete Vaccination', NULL, NULL, '2025-09-07 22:35:18', '2024-01-25 09:30:00', 'Resolved');
+INSERT INTO `tbl_flagged_record` (`flagged_id`, `child_id`, `issue_type`, `description`, `resolution_notes`, `resolution_date`, `date_flagged`, `flagged_status`, `resolution_type`, `current_status`, `follow_up_date`) VALUES
+(23, 9, 'Underweight', '', 'Referred to East Avenue.', '2025-09-15 15:37:00', '2025-09-15 15:22:00', 'Resolved', 'referral', NULL, '2025-12-20 13:00:00'),
+(25, 6, 'Overweight', '', 'Referred to nearest hospital', '2025-09-15 15:31:00', '2025-09-15 15:23:00', 'Resolved', 'transferred', NULL, NULL),
+(26, 5, 'Severely Underweight', '', 'Normal na yan sha', '2025-09-15 15:32:00', '2025-09-15 15:23:00', 'Resolved', 'improved', 'Normal Weight', NULL),
+(27, 1, 'Behavioral Issues', 'Makulet', NULL, NULL, '2025-09-15 15:41:00', 'Active', NULL, NULL, NULL),
+(29, 11, 'Incomplete Vaccination', '', NULL, NULL, '2024-08-02 15:43:00', 'Under Review', NULL, NULL, NULL),
+(30, 2, 'Overweight', '', NULL, NULL, '2025-09-15 18:11:00', 'Active', NULL, NULL, NULL),
+(31, 3, 'Medical Concerns', '', NULL, NULL, '2024-09-10 18:11:00', 'Active', NULL, NULL, NULL),
+(32, 2, 'Behavioral Issues', '', NULL, NULL, '2024-07-01 18:29:00', 'Active', NULL, NULL, NULL),
+(33, 8, 'Medical Concerns', '', NULL, NULL, '2024-07-17 18:29:00', 'Active', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -320,31 +403,10 @@ INSERT INTO `tbl_modules` (`module_id`, `module_title`, `created_by`, `module_co
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tbl_nutrition_status`
+-- Table structure for table `tbl_nutrition_record`
 --
 
-CREATE TABLE `tbl_nutrition_status` (
-  `status_id` int(11) NOT NULL,
-  `status_name` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `tbl_nutrition_status`
---
-
-INSERT INTO `tbl_nutrition_status` (`status_id`, `status_name`) VALUES
-(1, 'Normal Weight'),
-(2, 'Underweight'),
-(3, 'Severely Underweight'),
-(4, 'Overweight');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tbl_nutritrion_record`
---
-
-CREATE TABLE `tbl_nutritrion_record` (
+CREATE TABLE `tbl_nutrition_record` (
   `nutrition_id` int(11) NOT NULL,
   `child_id` int(11) DEFAULT NULL,
   `recorded_by` int(11) DEFAULT NULL,
@@ -356,10 +418,10 @@ CREATE TABLE `tbl_nutritrion_record` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `tbl_nutritrion_record`
+-- Dumping data for table `tbl_nutrition_record`
 --
 
-INSERT INTO `tbl_nutritrion_record` (`nutrition_id`, `child_id`, `recorded_by`, `weight`, `height`, `bmi`, `date_recorded`, `status_id`) VALUES
+INSERT INTO `tbl_nutrition_record` (`nutrition_id`, `child_id`, `recorded_by`, `weight`, `height`, `bmi`, `date_recorded`, `status_id`) VALUES
 (1, 1, 1002, 14.5, 95, 16.1, '2024-01-20 09:00:00', 1),
 (2, 2, 1002, 12.8, 88.5, 16.3, '2024-01-20 09:30:00', 2),
 (3, 3, 1003, 11.2, 82, 16.7, '2024-01-21 10:00:00', 1),
@@ -586,7 +648,7 @@ INSERT INTO `tbl_nutritrion_record` (`nutrition_id`, `child_id`, `recorded_by`, 
 (224, 3, 1003, 16.8, 91.5, 20.1, '2025-08-21 10:00:00', 3),
 (225, 4, 1005, 19.5, 101, 19.1, '2025-08-21 11:00:00', 2),
 (226, 5, 1007, 26.2, 119.5, 18.4, '2025-08-22 08:30:00', 4),
-(227, 6, 1002, 16.5, 88, 21.3, '2025-08-22 14:00:00', 4),
+(227, 6, 1000, 20, 105, 18.1, '2025-09-14 23:46:36', 4),
 (228, 7, 1003, 20.9, 108, 17.9, '2025-08-23 09:15:00', 1),
 (229, 8, 1005, 19.7, 105.6, 17.7, '2025-08-23 15:30:00', 1),
 (230, 9, 1007, 15.5, 84.5, 21.7, '2025-08-24 10:45:00', 4),
@@ -597,10 +659,10 @@ INSERT INTO `tbl_nutritrion_record` (`nutrition_id`, `child_id`, `recorded_by`, 
 (235, 3, 1005, 17.1, 92, 20.2, '2025-09-02 10:00:00', 3),
 (236, 4, 1007, 19.8, 101.5, 19.2, '2025-09-02 11:00:00', 2),
 (237, 5, 1002, 26.5, 120, 18.4, '2025-09-03 08:30:00', 4),
-(238, 6, 1003, 16.8, 88.5, 21.5, '2025-09-03 14:00:00', 4),
+(238, 6, 1000, 20, 109, 16.8, '2025-09-14 23:44:30', 1),
 (239, 7, 1005, 21.2, 108.6, 18, '2025-09-04 09:15:00', 1),
 (240, 8, 1007, 20, 106.2, 17.7, '2025-09-04 15:30:00', 1),
-(241, 9, 1002, 15.8, 85, 21.9, '2025-09-05 10:45:00', 4),
+(241, 9, 1000, 15.8, 109, 13.3, '2025-09-14 23:40:22', 2),
 (244, 3, 1002, 14.4, 87.8, 18.7, '2024-01-05 08:30:00', 3),
 (245, 5, 1003, 20.2, 109.5, 16.8, '2024-01-07 10:15:00', 4),
 (246, 7, 1005, 15, 96.2, 16.2, '2024-01-10 14:20:00', 1),
@@ -742,6 +804,51 @@ INSERT INTO `tbl_nutritrion_record` (`nutrition_id`, `child_id`, `recorded_by`, 
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tbl_nutrition_status`
+--
+
+CREATE TABLE `tbl_nutrition_status` (
+  `status_id` int(11) NOT NULL,
+  `status_name` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_nutrition_status`
+--
+
+INSERT INTO `tbl_nutrition_status` (`status_id`, `status_name`) VALUES
+(1, 'Normal Weight'),
+(2, 'Underweight'),
+(3, 'Severely Underweight'),
+(4, 'Overweight');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_parent_details`
+--
+
+CREATE TABLE `tbl_parent_details` (
+  `parent_id` int(11) NOT NULL,
+  `child_id` int(11) NOT NULL,
+  `parent_name` varchar(50) NOT NULL,
+  `contact` varchar(50) DEFAULT NULL,
+  `occupation` varchar(100) DEFAULT NULL,
+  `relationship` enum('Father','Mother','Guardian','') DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_parent_details`
+--
+
+INSERT INTO `tbl_parent_details` (`parent_id`, `child_id`, `parent_name`, `contact`, `occupation`, `relationship`) VALUES
+(3, 9, 'asda', '09565535401', 'asdad', 'Father'),
+(5, 8, 'parent 2', '09565535403', 'asdad', 'Father'),
+(6, 6, 'Parent 3', '09565535403', 'None', 'Father');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tbl_report`
 --
 
@@ -762,10 +869,11 @@ INSERT INTO `tbl_report` (`report_id`, `child_id`, `generated_by`, `report_type`
 (2, 5, 1001, 'Growth Monitoring Report', '2024-01-25 11:30:00'),
 (3, 6, 1005, 'Nutrition Status Report', '2024-01-26 09:15:00'),
 (4, 9, 1001, 'Severe Malnutrition Alert Report', '2024-01-26 14:20:00'),
-(5, 1, 1002, 'Monthly Progress Report', '2024-02-01 08:30:00'),
+(5, 1, 1002, 'Monthly Progress Report', '2025-09-11 08:30:00'),
 (6, 3, 1003, 'Vaccination Compliance Report', '2024-02-01 10:45:00'),
 (7, 4, 1005, 'Health Status Summary', '2025-09-08 17:30:00'),
-(8, 7, 1002, 'Health Status Summary', '2024-02-02 07:30:00');
+(8, 7, 1002, 'Health Status Summary', '2024-02-02 07:30:00'),
+(10, 4, 1000, 'Health Status Summary', '2025-09-15 13:16:00');
 
 -- --------------------------------------------------------
 
@@ -783,7 +891,6 @@ CREATE TABLE `tbl_roles` (
 --
 
 INSERT INTO `tbl_roles` (`role_id`, `role_name`) VALUES
-(1, 'User'),
 (2, 'Admin'),
 (3, 'Barangay Health Worker');
 
@@ -811,12 +918,12 @@ INSERT INTO `tbl_user` (`user_id`, `username`, `password`, `status`, `role_id`, 
 (1001, 'admin_maria', '$2y$10$IR5Fye.FdPqYEg0eQNTubOa2SG75NlU7wax/dtM8Jfur3yufIyhae', 'Active', 2, '2024-05-06 19:32:20'),
 (1002, 'bhw_juan', '$2y$10$k/nmvGf9Zw0da0n7p/7oY.aKSbhTw6DcLf1w523jm/EPNstWaa0he', 'Active', 3, '2025-08-21 08:20:23'),
 (1003, 'bhw_ana', '$2y$10$K6kY0yWvcdB46QEn4SH9t.PWAdqCkmRwAdW79yDaaIWPvEqdUHu8q', 'Active', 3, '2025-09-06 22:46:43'),
-(1004, 'user_pedro', '$2y$10$OBQFMqUOVDOEJp5WexL8COycPfD.OQ.5QNoUNNlA1dtFDaVlB4TsC', 'Active', 1, '2025-09-06 22:46:43'),
+(1004, 'user_pedro', '$2y$10$OBQFMqUOVDOEJp5WexL8COycPfD.OQ.5QNoUNNlA1dtFDaVlB4TsC', 'Active', 2, '2025-09-06 22:46:43'),
 (1005, 'bhw_rosa', '$2y$10$xyFRDMQO/5JKZraTfpIFFuCfOwuCUCRUjIFB9M/bbJSn5pnsh7hEm', 'Active', 3, '2025-09-06 22:46:43'),
-(1006, 'user_linda', '$2y$10$xLOgcxt8H7neNp4lzD2Kqen1NO79N3b3G32.NZ/Txqrkcb5oAapma', 'Active', 1, '2025-09-06 22:46:43'),
+(1006, 'user_linda', '$2y$10$xLOgcxt8H7neNp4lzD2Kqen1NO79N3b3G32.NZ/Txqrkcb5oAapma', 'Active', 2, '2025-09-06 22:46:43'),
 (1007, 'bhw_carlos', '$2y$10$ScXbB0gxOBzZsttaGJ5WauW0lsMGZqfGIweSoGV6vwHESTWkqETjK', 'Active', 3, '2025-09-06 22:46:43'),
-(1008, 'user_sofia', '$2y$10$zt86.IUTWqO4bOCM64KuO.UciR/pwHfATJ6zqxjeeOnAf3ti6L5Ae', 'Active', 1, '2025-09-06 22:46:43'),
-(1009, 'jcdavid12', '$2y$10$fCsoXJtzOHag1hpe6z8PKug6ZKrcZRViuWOGywf7UZB2jvdQUNVG2', 'Inactive', 3, '2025-09-06 23:45:46');
+(1008, 'user_sofia', '$2y$10$zt86.IUTWqO4bOCM64KuO.UciR/pwHfATJ6zqxjeeOnAf3ti6L5Ae', 'Active', 3, '2025-09-06 22:46:43'),
+(1009, 'jcdavid12', '$2y$10$fCsoXJtzOHag1hpe6z8PKug6ZKrcZRViuWOGywf7UZB2jvdQUNVG2', 'Active', 3, '2025-09-06 23:45:46');
 
 -- --------------------------------------------------------
 
@@ -841,7 +948,7 @@ INSERT INTO `tbl_user_details` (`details_id`, `user_id`, `full_name`, `address`,
 (2, 1001, 'Maria Santos', 'Barangay Hall, Poblacion', '09565535401'),
 (3, 1002, 'Juan Dela Cruz', 'Zone 1, Minuya Proper, San Jose del Monte', '09565535401'),
 (4, 1003, 'Ana Reyes', 'Zone 2, Minuya Proper, San Jose del Monte', '09565535401'),
-(5, 1004, 'Pedro Ramirez', 'Blk 5 Lot 12, Minuya Proper, San Jose del Monte', '09565535401'),
+(5, 1004, 'Pedro Garcia', 'Blk 5 Lot 12, Minuya Proper, San Jose del Monte', '09565535401'),
 (6, 1005, 'Rosa Dizon', 'Zone 3, Minuya Proper, San Jose del Monte', '09565535401'),
 (7, 1006, 'Linda Cruz', 'Blk 8 Lot 9, Minuya Proper, San Jose del Monte', '09565535401'),
 (8, 1007, 'Carlos Mendoza', 'Zone 4, Minuya Proper, San Jose del Monte', '09565535401'),
@@ -938,19 +1045,25 @@ ALTER TABLE `tbl_modules`
   ADD KEY `fk_userId_module` (`created_by`);
 
 --
+-- Indexes for table `tbl_nutrition_record`
+--
+ALTER TABLE `tbl_nutrition_record`
+  ADD PRIMARY KEY (`nutrition_id`),
+  ADD KEY `fk_status_id` (`status_id`),
+  ADD KEY `fk_childId_nutrition` (`child_id`),
+  ADD KEY `fk_userid_nutrition` (`recorded_by`);
+
+--
 -- Indexes for table `tbl_nutrition_status`
 --
 ALTER TABLE `tbl_nutrition_status`
   ADD PRIMARY KEY (`status_id`);
 
 --
--- Indexes for table `tbl_nutritrion_record`
+-- Indexes for table `tbl_parent_details`
 --
-ALTER TABLE `tbl_nutritrion_record`
-  ADD PRIMARY KEY (`nutrition_id`),
-  ADD KEY `fk_status_id` (`status_id`),
-  ADD KEY `fk_childId_nutrition` (`child_id`),
-  ADD KEY `fk_userid_nutrition` (`recorded_by`);
+ALTER TABLE `tbl_parent_details`
+  ADD PRIMARY KEY (`parent_id`);
 
 --
 -- Indexes for table `tbl_report`
@@ -1002,7 +1115,7 @@ ALTER TABLE `tbl_announcements`
 -- AUTO_INCREMENT for table `tbl_audit_log`
 --
 ALTER TABLE `tbl_audit_log`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=113;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=189;
 
 --
 -- AUTO_INCREMENT for table `tbl_barangay`
@@ -1026,7 +1139,7 @@ ALTER TABLE `tbl_events`
 -- AUTO_INCREMENT for table `tbl_flagged_record`
 --
 ALTER TABLE `tbl_flagged_record`
-  MODIFY `flagged_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `flagged_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `tbl_modules`
@@ -1035,22 +1148,28 @@ ALTER TABLE `tbl_modules`
   MODIFY `module_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
+-- AUTO_INCREMENT for table `tbl_nutrition_record`
+--
+ALTER TABLE `tbl_nutrition_record`
+  MODIFY `nutrition_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=388;
+
+--
 -- AUTO_INCREMENT for table `tbl_nutrition_status`
 --
 ALTER TABLE `tbl_nutrition_status`
   MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `tbl_nutritrion_record`
+-- AUTO_INCREMENT for table `tbl_parent_details`
 --
-ALTER TABLE `tbl_nutritrion_record`
-  MODIFY `nutrition_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=387;
+ALTER TABLE `tbl_parent_details`
+  MODIFY `parent_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `tbl_report`
 --
 ALTER TABLE `tbl_report`
-  MODIFY `report_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `report_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `tbl_roles`
@@ -1062,19 +1181,19 @@ ALTER TABLE `tbl_roles`
 -- AUTO_INCREMENT for table `tbl_user`
 --
 ALTER TABLE `tbl_user`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1010;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1011;
 
 --
 -- AUTO_INCREMENT for table `tbl_user_details`
 --
 ALTER TABLE `tbl_user_details`
-  MODIFY `details_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `details_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `tbl_vaccine_record`
 --
 ALTER TABLE `tbl_vaccine_record`
-  MODIFY `vaccine_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `vaccine_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- Constraints for dumped tables
@@ -1118,9 +1237,9 @@ ALTER TABLE `tbl_modules`
   ADD CONSTRAINT `fk_userId_module` FOREIGN KEY (`created_by`) REFERENCES `tbl_user` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Constraints for table `tbl_nutritrion_record`
+-- Constraints for table `tbl_nutrition_record`
 --
-ALTER TABLE `tbl_nutritrion_record`
+ALTER TABLE `tbl_nutrition_record`
   ADD CONSTRAINT `fk_childId_nutrition` FOREIGN KEY (`child_id`) REFERENCES `tbl_child` (`child_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_status_id` FOREIGN KEY (`status_id`) REFERENCES `tbl_nutrition_status` (`status_id`) ON DELETE SET NULL,
   ADD CONSTRAINT `fk_userid_nutrition` FOREIGN KEY (`recorded_by`) REFERENCES `tbl_user` (`user_id`) ON DELETE SET NULL;

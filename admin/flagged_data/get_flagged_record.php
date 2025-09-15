@@ -14,13 +14,14 @@ try {
     }
     
     $sql = "SELECT fr.flagged_id, fr.child_id, fr.issue_type, fr.date_flagged, fr.flagged_status,
-                   fr.description, fr.resolution_notes, fr.resolution_date,
-                   c.first_name, c.last_name, c.birthdate, c.gender,
-                   b.zone_name
-            FROM tbl_flagged_record fr
-            INNER JOIN tbl_child c ON fr.child_id = c.child_id
-            LEFT JOIN tbl_barangay b ON c.zone_id = b.zone_id
-            WHERE fr.flagged_id = ?";
+               fr.description, fr.resolution_notes, fr.resolution_date,
+               fr.resolution_type, fr.current_status, fr.follow_up_date,
+               c.first_name, c.last_name, c.birthdate, c.gender,
+               b.zone_name
+        FROM tbl_flagged_record fr
+        INNER JOIN tbl_child c ON fr.child_id = c.child_id
+        LEFT JOIN tbl_barangay b ON c.zone_id = b.zone_id
+        WHERE fr.flagged_id = ?";
     
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $flagged_id);

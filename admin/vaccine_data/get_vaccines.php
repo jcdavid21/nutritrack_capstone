@@ -9,6 +9,7 @@ try {
     $search = isset($_GET['search']) ? trim($_GET['search']) : '';
     $status = isset($_GET['status']) ? trim($_GET['status']) : '';
     $vaccine_type = isset($_GET['vaccine_type']) ? trim($_GET['vaccine_type']) : '';
+    $zone = isset($_GET['zone']) ? trim($_GET['zone']) : '';
     
     $offset = ($page - 1) * $limit;
     
@@ -19,7 +20,7 @@ try {
     
     if (!empty($search)) {
         $where_conditions[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR v.vaccine_name LIKE ? OR ud.full_name LIKE ?)";
-        $search_param = "%$search%";
+        $search_param = "{$search}%";
         $params[] = $search_param;
         $params[] = $search_param;
         $params[] = $search_param;
@@ -37,6 +38,12 @@ try {
         $where_conditions[] = "v.vaccine_name = ?";
         $params[] = $vaccine_type;
         $param_types .= 's';
+    }
+
+    if (!empty($zone)) {
+        $where_conditions[] = "c.zone_id = ?";
+        $params[] = $zone;
+        $param_types .= 'i';
     }
     
     $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';

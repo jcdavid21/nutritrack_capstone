@@ -8,6 +8,7 @@ try {
     $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
     $search = isset($_GET['search']) ? trim($_GET['search']) : '';
     $report_type = isset($_GET['report_type']) ? trim($_GET['report_type']) : '';
+    $zone = isset($_GET['zone']) ? trim($_GET['zone']) : '';
     
     $offset = ($page - 1) * $limit;
     
@@ -18,7 +19,7 @@ try {
     
     if (!empty($search)) {
         $where_conditions[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR r.report_type LIKE ? OR ud.full_name LIKE ?)";
-        $search_param = "%$search%";
+        $search_param = "{$search}%";
         $params[] = $search_param;
         $params[] = $search_param;
         $params[] = $search_param;
@@ -30,6 +31,12 @@ try {
         $where_conditions[] = "r.report_type = ?";
         $params[] = $report_type;
         $param_types .= 's';
+    }
+
+    if (!empty($zone)) {
+        $where_conditions[] = "c.zone_id = ?";
+        $params[] = $zone;
+        $param_types .= 'i';
     }
     
     $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';

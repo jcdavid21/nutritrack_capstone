@@ -76,6 +76,11 @@ $total_pages = ceil($total_items / $items_per_page);
             font-weight: bold;
             font-size: 14px;
         }
+
+        .btn-activate{
+            background-color: #28a745;
+            color: white;
+        }
     </style>
 </head>
 
@@ -201,7 +206,7 @@ $total_pages = ceil($total_items / $items_per_page);
                                         Status <span class="text-danger">*</span>
                                     </label>
                                     <select class="form-control" id="addUserStatus" name="status" required>
-                                        <option value="">Select Status</option>
+                                        <option value="" disabled selected>Select Status</option>
                                         <option value="active">Active</option>
                                         <option value="inactive">Inactive</option>
                                     </select>
@@ -297,7 +302,7 @@ $total_pages = ceil($total_items / $items_per_page);
                 const addRoleSelect = document.getElementById('addUserRole');
                 if (addRoleSelect) {
                     // Clear existing options except the first one
-                    addRoleSelect.innerHTML = '<option value="">Select Role</option>';
+                    addRoleSelect.innerHTML = '<option value="" disabled selected>Select Role</option>';
 
                     // Add role options
                     this.roles.forEach(role => {
@@ -387,6 +392,11 @@ $total_pages = ceil($total_items / $items_per_page);
                                     <button class="btn-action btn-delete" title="Delete" onclick="deleteUser(${user.user_id})">
                                         <i class="fa-solid fa-arrow-down"></i>
                                     </button>
+                                    ${user.status.toLowerCase() === 'inactive' ? `
+                                        <button class="btn-action btn-activate" title="Activate" onclick="activateUser(${user.user_id})">
+                                            <i class="fa-solid fa-arrow-up"></i>
+                                        </button>
+                                    ` : ''}
                                 </div>
                             </td>
                         </tr>`;
@@ -611,6 +621,74 @@ $total_pages = ceil($total_items / $items_per_page);
             });
         }
 
+       async function activateUser(userId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This will activate the user account.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, activate it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const activateButton = document.querySelector(`tr[data-user-id="${userId}"] .btn-activate`);
+                    const originalContent = activateButton.innerHTML;
+                    activateButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                    activateButton.disabled = true;
+
+                    $.ajax({
+                        url: '../backend/admin/activate_user.php',
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {
+                            user_id: userId
+                        },
+                        success: function(activateResult) {
+                            if (activateResult.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Activated!',
+                                    text: 'User has been activated.'
+                                }).then(() => {
+                                    // Reload data
+                                    userManager.loadUsers().then(() => {
+                                        userManager.loadTableView();
+                                    });
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: activateResult.message || 'Failed to activate user.'
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('AJAX Error:', {
+                                xhr,
+                                status,
+                                error
+                            });
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'An error occurred while activating the user. Please try again.'
+                            });
+                        },
+                        complete: function() {
+                            // Restore button state
+                            if (activateButton) {
+                                activateButton.innerHTML = originalContent;
+                                activateButton.disabled = false;
+                            }
+                        }
+                    });
+                }
+            });
+       }
+
         async function updateUser(userId) {
             const fullName = document.getElementById(`editUserFullName${userId}`).value.trim();
             const username = document.getElementById(`editUserUsername${userId}`).value.trim();
@@ -634,6 +712,25 @@ $total_pages = ceil($total_items / $items_per_page);
                     icon: 'error',
                     title: 'Invalid Contact Number',
                     text: 'Contact number must be exactly 11 digits.'
+                });
+                return;
+            }
+
+            if(password && password.length < 8){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Weak Password',
+                    text: 'Password must be at least 8 characters long.'
+                });
+                return;
+            }
+
+            const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if(password && !passwordPattern.test(password)){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Weak Password',
+                    text: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
                 });
                 return;
             }
@@ -797,11 +894,22 @@ $total_pages = ceil($total_items / $items_per_page);
                 return;
             }
 
-            if(password.length < 6){
+            if(password.length < 8){
                 Swal.fire({
                     icon: 'error',
                     title: 'Weak Password',
-                    text: 'Password must be at least 6 characters long.'
+                    text: 'Password must be at least 8 characters long.'
+                });
+                return;
+            }
+
+            //password should have uppercase, lowercase, number, special character
+            const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+            if(!passwordPattern.test(password)){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Weak Password',
+                    text: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
                 });
                 return;
             }

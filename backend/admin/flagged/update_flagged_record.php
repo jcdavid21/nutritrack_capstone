@@ -13,7 +13,8 @@ try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         throw new Exception('Invalid request method');
     }
-
+    date_default_timezone_set('Asia/Manila');
+    
     // Get POST data
     $flagged_id = isset($_POST['flagged_id']) ? intval($_POST['flagged_id']) : 0;
     $issue_type = isset($_POST['issue_type']) ? trim($_POST['issue_type']) : '';
@@ -21,6 +22,11 @@ try {
     $description = isset($_POST['description']) ? trim($_POST['description']) : null;
     $resolution_notes = isset($_POST['resolution_notes']) ? trim($_POST['resolution_notes']) : null;
     $resolution_date = isset($_POST['resolution_date']) ? trim($_POST['resolution_date']) : null;
+    
+    // New resolution fields - Handle empty strings as NULL
+    $resolution_type = isset($_POST['resolution_type']) && $_POST['resolution_type'] !== '' ? trim($_POST['resolution_type']) : null;
+    $current_status = isset($_POST['current_status']) && $_POST['current_status'] !== '' ? trim($_POST['current_status']) : null;
+    $follow_up_date = isset($_POST['follow_up_date']) && $_POST['follow_up_date'] !== '' ? trim($_POST['follow_up_date']) : null;
 
     // Validate required fields
     if (!$flagged_id) {
@@ -48,19 +54,33 @@ try {
     
     $record = $check_result->fetch_assoc();
 
-    // If status is being changed to resolved, ensure resolution notes and date are provided
+    // If status is being changed to resolved, ensure required fields are provided
     if ($flagged_status === 'Resolved') {
         if (empty($resolution_notes)) {
             throw new Exception('Resolution notes are required when marking as resolved');
         }
+        if (empty($resolution_type)) {
+            throw new Exception('Resolution type is required when marking as resolved');
+        }
         if (empty($resolution_date)) {
             $resolution_date = date('Y-m-d'); // Use current date if not provided
+        }
+        // If resolution type is 'improved', require current status
+        if ($resolution_type === 'improved' && empty($current_status)) {
+            throw new Exception('Current status is required when marking as improved');
         }
     } else {
         // Clear resolution data if status is not resolved
         $resolution_notes = null;
         $resolution_date = null;
+        $resolution_type = null;
+        $current_status = null;
+        $follow_up_date = null;
     }
+
+    // Convert empty date strings to NULL for database
+    if ($resolution_date === '') $resolution_date = null;
+    if ($follow_up_date === '') $follow_up_date = null;
 
     // Check for duplicate active flagged records (excluding current record)
     if ($flagged_status !== 'Resolved') {
@@ -77,28 +97,34 @@ try {
         }
     }
 
-    // Update flagged record
-    if ($flagged_status === 'Resolved') {
-        $sql = "UPDATE tbl_flagged_record 
-                SET issue_type = ?, flagged_status = ?, description = ?, 
-                    resolution_notes = ?, resolution_date = ?
-                WHERE flagged_id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssi", $issue_type, $flagged_status, $description, 
-                         $resolution_notes, $resolution_date, $flagged_id);
-    } else {
-        $sql = "UPDATE tbl_flagged_record 
-                SET issue_type = ?, flagged_status = ?, description = ?, 
-                    resolution_notes = NULL, resolution_date = NULL
-                WHERE flagged_id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssi", $issue_type, $flagged_status, $description, $flagged_id);
-    }
+    // Update flagged record - always update all fields to handle NULL values properly
+    $sql = "UPDATE tbl_flagged_record 
+            SET issue_type = ?, 
+                flagged_status = ?, 
+                description = ?, 
+                resolution_notes = ?, 
+                resolution_date = ?, 
+                resolution_type = ?,
+                current_status = ?, 
+                follow_up_date = ?
+            WHERE flagged_id = ?";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssssssi", 
+        $issue_type, 
+        $flagged_status, 
+        $description, 
+        $resolution_notes, 
+        $resolution_date, 
+        $resolution_type,
+        $current_status, 
+        $follow_up_date, 
+        $flagged_id
+    );
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
             // Log the activity
-            date_default_timezone_set('Asia/Manila');
             $user_id = $_SESSION['user_id'] ?? null;
             $activity_type = "Updated flagged record with ID: " . $flagged_id;
             $log_date = date('Y-m-d H:i:s');

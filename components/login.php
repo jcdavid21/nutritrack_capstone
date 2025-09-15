@@ -23,7 +23,7 @@
             <div class="forms">
                 <div class="form login">
                     <span class="title">Login</span>
-                    <form action="#">
+                    <form action="#" method="POST" id="loginForm">
                         <div class="input-field">
                             <input type="text" placeholder="Enter your username"
                                 id="username" required />
@@ -42,7 +42,7 @@
                             </div>
                         </div>
                         <div class="input-field button" id="login">
-                            <input type="button" value="Login" />
+                            <input type="submit" value="Login" />
                         </div>
                     </form>
                 </div>

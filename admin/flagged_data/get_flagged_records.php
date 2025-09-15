@@ -18,7 +18,7 @@ try {
     
     if (!empty($search)) {
         $where_conditions[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR fr.issue_type LIKE ?)";
-        $search_param = "%$search%";
+        $search_param = "{$search}%";
         $params[] = $search_param;
         $params[] = $search_param;
         $params[] = $search_param;
@@ -53,15 +53,16 @@ try {
     
     // Get paginated records
     $sql = "SELECT fr.flagged_id, fr.child_id, fr.issue_type, fr.date_flagged, fr.flagged_status,
-                   fr.description, fr.resolution_notes, fr.resolution_date,
-                   c.first_name, c.last_name, c.birthdate, c.gender,
-                   b.zone_name
-            FROM tbl_flagged_record fr
-            INNER JOIN tbl_child c ON fr.child_id = c.child_id
-            LEFT JOIN tbl_barangay b ON c.zone_id = b.zone_id
-            $where_clause
-            ORDER BY fr.date_flagged DESC
-            LIMIT ? OFFSET ?";
+               fr.description, fr.resolution_notes, fr.resolution_date,
+               fr.resolution_type, fr.current_status, fr.follow_up_date,
+               c.first_name, c.last_name, c.birthdate, c.gender,
+               b.zone_name
+        FROM tbl_flagged_record fr
+        INNER JOIN tbl_child c ON fr.child_id = c.child_id
+        LEFT JOIN tbl_barangay b ON c.zone_id = b.zone_id
+        $where_clause
+        ORDER BY fr.date_flagged DESC
+        LIMIT ? OFFSET ?";
     
     $stmt = $conn->prepare($sql);
     

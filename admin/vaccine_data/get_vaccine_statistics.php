@@ -2,22 +2,60 @@
 header('Content-Type: application/json');
 include "../../backend/config.php";
 
+    $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+    $status = isset($_GET['status']) ? trim($_GET['status']) : '';
+    $vaccine_type = isset($_GET['vaccine_type']) ? trim($_GET['vaccine_type']) : '';
+    $zone = isset($_GET['zone']) ? trim($_GET['zone']) : '';
+
+    $conditions = [];
+    $params = [];
+    $types = '';
+
+    if ($search) {
+        $conditions[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR tv.vaccine_name LIKE ?)";
+        $search_param = "{$search}%";
+        $params = [$search_param, $search_param, $search_param];
+        $types .= 'sss';
+    }
+
+    if ($status) {
+        $conditions[] = "tv.vaccine_status = ?";
+        $params[] = $status;
+        $types .= 's';
+    }
+
+    if ($vaccine_type) {
+        $conditions[] = "tv.vaccine_name = ?";
+        $params[] = $vaccine_type;
+        $types .= 's';
+    }
+
+    if ($zone) {
+        $conditions[] = "c.zone_id = ?";
+        $params[] = $zone;
+        $types .= 'i';
+    }
+
 try {
     // Get overall statistics
     $stats_sql = "SELECT 
                 COUNT(*) as total,
-                SUM(CASE WHEN vaccine_status = 'Completed' THEN 1 ELSE 0 END) as completed,
-                SUM(CASE WHEN vaccine_status = 'Ongoing' THEN 1 ELSE 0 END) as ongoing,
-                SUM(CASE WHEN vaccine_status = 'Incomplete' THEN 1 ELSE 0 END) as incomplete,
-                SUM(CASE WHEN vaccine_name LIKE '%BCG%' THEN 1 ELSE 0 END) as bcg,
-                SUM(CASE WHEN vaccine_name LIKE '%Hepatitis%' THEN 1 ELSE 0 END) as hepatitis,
-                SUM(CASE WHEN vaccine_name LIKE '%DPT%' THEN 1 ELSE 0 END) as dpt,
-                SUM(CASE WHEN vaccine_name LIKE '%Polio%' THEN 1 ELSE 0 END) as polio,
-                SUM(CASE WHEN vaccine_name LIKE '%MMR%' THEN 1 ELSE 0 END) as mmr
-              FROM tbl_vaccine_record";
+                SUM(CASE WHEN tv.vaccine_status = 'Completed' THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN tv.vaccine_status = 'Ongoing' THEN 1 ELSE 0 END) as ongoing,
+                SUM(CASE WHEN tv.vaccine_status = 'Incomplete' THEN 1 ELSE 0 END) as incomplete,
+                SUM(CASE WHEN tv.vaccine_name LIKE '%BCG%' THEN 1 ELSE 0 END) as bcg,
+                SUM(CASE WHEN tv.vaccine_name LIKE '%Hepatitis%' THEN 1 ELSE 0 END) as hepatitis,
+                SUM(CASE WHEN tv.vaccine_name LIKE '%DPT%' THEN 1 ELSE 0 END) as dpt,
+                SUM(CASE WHEN tv.vaccine_name LIKE '%Polio%' THEN 1 ELSE 0 END) as polio,
+                SUM(CASE WHEN tv.vaccine_name LIKE '%MMR%' THEN 1 ELSE 0 END) as mmr
+              FROM tbl_vaccine_record tv 
+              INNER JOIN tbl_child c ON tv.child_id = c.child_id" . ($conditions ? " WHERE " . implode(" AND ", $conditions) : "");
 
     
     $stmt = $conn->prepare($stats_sql);
+    if ($params) {
+        $stmt->bind_param($types, ...$params);
+    }
     $stmt->execute();
     $result = $stmt->get_result();
     $stats = $result->fetch_assoc();

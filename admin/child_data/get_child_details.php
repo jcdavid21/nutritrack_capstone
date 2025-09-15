@@ -29,7 +29,7 @@ if (!$child) {
 // Get all nutrition records for this child
 $records_query = "SELECT nr.*, tns.status_name,
                          tud.full_name as recorded_by_name
-                  FROM tbl_nutritrion_record nr
+                  FROM tbl_nutrition_record nr
                   INNER JOIN tbl_nutrition_status tns ON nr.status_id = tns.status_id
                   LEFT JOIN tbl_user_details tud ON nr.recorded_by = tud.user_id
                   WHERE nr.child_id = ?

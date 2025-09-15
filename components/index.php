@@ -6,10 +6,10 @@ include_once '../backend/config.php';
 $nutrition_status_query = "SELECT ns.status_name, COUNT(*) as count 
                           FROM (
                               SELECT DISTINCT nr1.child_id, nr1.status_id
-                              FROM tbl_nutritrion_record nr1
+                              FROM tbl_nutrition_record nr1
                               INNER JOIN (
                                   SELECT child_id, MAX(date_recorded) as max_date
-                                  FROM tbl_nutritrion_record
+                                  FROM tbl_nutrition_record
                                   GROUP BY child_id
                               ) nr2 ON nr1.child_id = nr2.child_id AND nr1.date_recorded = nr2.max_date
                           ) latest_records
@@ -230,7 +230,7 @@ while ($row = mysqli_fetch_assoc($events_result)) {
                                         <?php echo $data_anc["content"]; ?>
                                     </p>
                                     <div class="view-more">
-                                        <a href="./announcement.php">
+                                        <a href="./announcement-detail.php?id=<?php echo $data_anc["announcement_id"]; ?>">
                                             <button>View More</button>
                                         </a>
                                     </div>

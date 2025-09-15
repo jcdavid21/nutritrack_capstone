@@ -170,7 +170,7 @@ $offset = ($current_page - 1) * $items_per_page;
             border-radius: 12px 12px 0 0;
         }
 
-        .modal-header .modal-title{
+        .modal-header .modal-title {
             color: white;
         }
 
@@ -304,6 +304,92 @@ $offset = ($current_page - 1) * $items_per_page;
             margin-right: 8px;
             font-weight: 500;
         }
+
+        .resolution-type-card {
+            border: 2px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: white;
+        }
+
+        .resolution-type-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .resolution-type-card.selected {
+            border-color: var(--primary-red);
+            background-color: rgba(45, 90, 61, 0.1);
+        }
+
+        .resolution-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 16px;
+            color: white;
+        }
+
+        .improved-icon {
+            background-color: var(--success-green);
+        }
+
+        .transferred-icon {
+            background-color: var(--primary-blue);
+        }
+
+        .referral-icon {
+            background-color: var(--warning-orange);
+        }
+
+        .other-icon {
+            background-color: var(--primary-red);
+        }
+
+        .verification-section {
+            background: #4a7c59;
+            border: 1px solid #4a7c59;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .verification-section h6 {
+            color: white;
+            font-weight: 500;
+        }
+
+        .current-measurements {
+            background: #e8f5e8;
+            border: 1px solid var(--success-green);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .form-select.disabled,
+        .form-control.disabled {
+            background-color: #f8f9fa !important;
+            color: #6c757d !important;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+        }
+
+        .form-select:disabled,
+        .form-control:disabled {
+            background-color: #f8f9fa !important;
+            color: #6c757d !important;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+        }
     </style>
 </head>
 
@@ -428,11 +514,14 @@ $offset = ($current_page - 1) * $items_per_page;
                     <option value="Resolved">Resolved</option>
                 </select>
                 <select class="form-select form-select-sm" id="issueFilter" onchange="filterRecords()">
-                    <option value="">All Issues</option>
+                    <option value="">All Issue Types</option>
                     <option value="Underweight">Underweight</option>
                     <option value="Overweight">Overweight</option>
                     <option value="Severely Underweight">Severely Underweight</option>
                     <option value="Incomplete Vaccination">Incomplete Vaccination</option>
+                    <option value="Growth Concerns">Growth Concerns</option>
+                    <option value="Behavioral Issues">Behavioral Issues</option>
+                    <option value="Medical Concerns">Medical Concerns</option>
                 </select>
                 <div class="search-box">
                     <i class="fa-solid fa-search"></i>
@@ -593,7 +682,7 @@ $offset = ($current_page - 1) * $items_per_page;
                     <button type="button" class="btn btn-warning" onclick="editFlaggedRecord()">
                         <i class="fa-solid fa-edit"></i> Edit Record
                     </button>
-                    <button type="button" class="btn btn-success" onclick="resolveFlaggedRecord()">
+                    <button type="button" id="markResolved" class="btn btn-success" onclick="resolveFlaggedRecord()">
                         <i class="fa-solid fa-check"></i> Mark as Resolved
                     </button>
                 </div>
@@ -615,7 +704,7 @@ $offset = ($current_page - 1) * $items_per_page;
                 <div class="modal-body">
                     <form id="editFlaggedForm">
                         <input type="hidden" id="editFlaggedId">
-                        
+
                         <!-- Child Info Display (Read-only) -->
                         <div class="details-section">
                             <h6><i class="fa-solid fa-user"></i> Child Information</h6>
@@ -679,13 +768,103 @@ $offset = ($current_page - 1) * $items_per_page;
                         <div id="resolutionSection" style="display: none;">
                             <div class="resolution-notes">
                                 <h6><i class="fa-solid fa-check-circle"></i> Resolution Details</h6>
-                                <div class="form-floating mb-3">
-                                    <textarea class="form-control" id="resolutionNotes" style="height: 80px" placeholder="Enter resolution details..."></textarea>
-                                    <label for="resolutionNotes">Resolution Notes</label>
+
+                                <!-- Resolution Type Selection -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">How was this issue resolved?</label>
+                                    <div class="resolution-type-card" onclick="selectResolutionType('improved')" data-type="improved">
+                                        <div class="d-flex align-items-center">
+                                            <div class="resolution-icon improved-icon">
+                                                <i class="fa-solid fa-heart-pulse"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Child's Condition Improved</h6>
+                                                <small class="text-muted">Child has recovered or condition normalized</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="resolution-type-card" onclick="selectResolutionType('transferred')" data-type="transferred">
+                                        <div class="d-flex align-items-center">
+                                            <div class="resolution-icon transferred-icon">
+                                                <i class="fa-solid fa-exchange-alt"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Transferred to Another Program</h6>
+                                                <small class="text-muted">Child moved to different barangay or program</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="resolution-type-card" onclick="selectResolutionType('referral')" data-type="referral">
+                                        <div class="d-flex align-items-center">
+                                            <div class="resolution-icon referral-icon">
+                                                <i class="fa-solid fa-hospital"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Referred to Medical Facility</h6>
+                                                <small class="text-muted">Case referred to hospital or clinic for specialized care</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="resolution-type-card" onclick="selectResolutionType('other')" data-type="other">
+                                        <div class="d-flex align-items-center">
+                                            <div class="resolution-icon other-icon">
+                                                <i class="fa-solid fa-ellipsis-h"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Other Reason</h6>
+                                                <small class="text-muted">Different reason for resolution</small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-floating">
-                                    <input type="date" class="form-control" id="resolutionDate">
-                                    <label for="resolutionDate">Date Resolved</label>
+
+                                <input type="hidden" id="resolutionType" required>
+
+                                <!-- Verification Section (shows for improved cases) -->
+                                <div id="verificationSection" style="display: none;">
+                                    <div class="verification-section">
+                                        <h6><i class="fa-solid fa-clipboard-check"></i> Verification Required</h6>
+                                        <p class="mb-3 text-warning">
+                                            <i class="fa-solid fa-exclamation-triangle"></i>
+                                            Please confirm the current status of the child
+                                        </p>
+                                        <div class="form-floating mb-3">
+                                            <select class="form-control" id="currentStatus" required>
+                                                <option value="">Select Current Status</option>
+                                                <option value="Normal Weight">Normal Weight</option>
+                                                <option value="Improved but Still Monitoring">Improved but Still Monitoring</option>
+                                                <option value="Vaccination Completed">Vaccination Completed</option>
+                                                <option value="Issue Fully Resolved">Issue Fully Resolved</option>
+                                            </select>
+                                            <label for="currentStatus">Current Status *</label>
+                                        </div>
+                                        <div class="current-measurements" id="statusConfirmation" style="display: none;">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fa-solid fa-info-circle text-info me-2"></i>
+                                                <span>Status updated and verified</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-floating mb-3">
+                                    <textarea class="form-control" id="resolutionNotes" style="height: 100px" placeholder="Enter detailed resolution notes..." required></textarea>
+                                    <label for="resolutionNotes">Resolution Notes *</label>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="date" class="form-control" id="resolutionDate" required>
+                                            <label for="resolutionDate">Date Resolved *</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" id="followUpSection" style="display: none;">
+                                        <div class="form-floating">
+                                            <input type="date" class="form-control" id="followUpDate">
+                                            <label for="followUpDate">Follow-up Date</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -712,6 +891,7 @@ $offset = ($current_page - 1) * $items_per_page;
                 this.currentChartType = 'status';
                 this.chart = null;
                 this.currentRecord = null;
+                this.zones = [];
                 this.init();
             }
 
@@ -727,18 +907,43 @@ $offset = ($current_page - 1) * $items_per_page;
 
             setupEventListeners() {
                 document.getElementById('searchInput').addEventListener('input', (e) => this.searchRecords(e.target.value));
-                document.getElementById('addDateFlagged').valueAsDate = new Date();
+                const addDateInput = document.getElementById('addDateFlagged');
+                addDateInput.type = 'datetime-local';
+                addDateInput.value = this.getLocalDateTimeString(new Date());
 
                 // Show resolution section when status is set to Resolved
                 document.getElementById('editFlaggedStatus').addEventListener('change', (e) => {
                     const resolutionSection = document.getElementById('resolutionSection');
                     if (e.target.value === 'Resolved') {
                         resolutionSection.style.display = 'block';
-                        document.getElementById('resolutionDate').valueAsDate = new Date();
+                        const resolutionDateInput = document.getElementById('resolutionDate');
+                        resolutionDateInput.type = 'datetime-local';
+                        resolutionDateInput.value = this.getLocalDateTimeString(new Date());
                     } else {
                         resolutionSection.style.display = 'none';
                     }
                 });
+
+                // Add current status change listener (only once)
+                const currentStatusElement = document.getElementById('currentStatus');
+                if (currentStatusElement) {
+                    currentStatusElement.addEventListener('change', function() {
+                        const confirmationElement = document.getElementById('statusConfirmation');
+                        if (confirmationElement) {
+                            confirmationElement.style.display = this.value ? 'block' : 'none';
+                        }
+                    });
+                }
+            }
+
+            getLocalDateTimeString(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
             }
 
             async loadInitialData() {
@@ -747,7 +952,12 @@ $offset = ($current_page - 1) * $items_per_page;
                     const childrenResponse = await fetch('./flagged_data/get_children.php');
                     const childrenData = await childrenResponse.json();
                     this.children = childrenData.children || [];
-                    
+
+                    // Load zones for add child modal
+                    const zonesResponse = await fetch('./flagged_data/get_barangay_zones.php');
+                    const zonesData = await zonesResponse.json();
+                    this.zones = zonesData.zones || [];
+
                     this.populateChildrenDropdown();
                 } catch (error) {
                     console.error('Error loading initial data:', error);
@@ -768,7 +978,7 @@ $offset = ($current_page - 1) * $items_per_page;
             async showAddChildInfo() {
                 const childId = document.getElementById('addChildSelect').value;
                 const infoDisplay = document.getElementById('addChildInfoDisplay');
-                
+
                 if (!childId) {
                     infoDisplay.style.display = 'none';
                     return;
@@ -919,14 +1129,22 @@ $offset = ($current_page - 1) * $items_per_page;
             calculateDaysOpen(flaggedDate, status) {
                 if (status === 'Resolved') return 0;
                 const today = new Date();
-                const diffTime = Math.abs(today - flaggedDate);
-                return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const flagged = new Date(flaggedDate);
+
+                // Reset time to start of day for accurate day calculation
+                today.setHours(0, 0, 0, 0);
+                flagged.setHours(0, 0, 0, 0);
+
+                const diffTime = today - flagged;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                return Math.max(0, diffDays); // Ensure non-negative
             }
 
             calculatePriority(issueType, daysOpen) {
                 const issue = issueType.toLowerCase();
                 let baseScore = 0;
-                
+
                 // Issue severity
                 if (issue.includes('severely')) baseScore = 3;
                 else if (issue.includes('underweight') || issue.includes('overweight')) baseScore = 2;
@@ -936,14 +1154,24 @@ $offset = ($current_page - 1) * $items_per_page;
                 if (daysOpen > 14) baseScore += 2;
                 else if (daysOpen > 7) baseScore += 1;
 
-                if (baseScore >= 4) return { text: 'High', class: 'priority-high' };
-                if (baseScore >= 2) return { text: 'Medium', class: 'priority-medium' };
-                return { text: 'Low', class: 'priority-low' };
+                if (baseScore >= 4) return {
+                    text: 'High',
+                    class: 'priority-high'
+                };
+                if (baseScore >= 2) return {
+                    text: 'Medium',
+                    class: 'priority-medium'
+                };
+                return {
+                    text: 'Low',
+                    class: 'priority-low'
+                };
             }
 
             formatDate(date) {
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                ];
 
                 const d = new Date(date);
                 return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
@@ -951,14 +1179,24 @@ $offset = ($current_page - 1) * $items_per_page;
 
             timeAgo(date) {
                 const now = new Date();
-                const diffTime = Math.abs(now - date);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const past = new Date(date);
+                const diffTime = Math.abs(now - past);
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
 
+                if (diffDays === 0) {
+                    if (diffHours === 0) {
+                        const diffMinutes = Math.floor(diffTime / (1000 * 60));
+                        if (diffMinutes === 0) return 'Just now';
+                        return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+                    }
+                    return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                }
                 if (diffDays === 1) return '1 day ago';
                 if (diffDays < 7) return `${diffDays} days ago`;
-                if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-                if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-                return `${Math.floor(diffDays / 365)} years ago`;
+                if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? 's' : ''} ago`;
+                if (diffDays < 365) return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? 's' : ''} ago`;
+                return `${Math.floor(diffDays / 365)} year${Math.floor(diffDays / 365) > 1 ? 's' : ''} ago`;
             }
 
             async updateStatistics() {
@@ -979,7 +1217,7 @@ $offset = ($current_page - 1) * $items_per_page;
                 try {
                     const response = await fetch('./flagged_data/get_recent_flagged_activity.php');
                     const data = await response.json();
-                    
+
                     const container = document.getElementById('recentActivity');
                     let html = '';
 
@@ -1030,7 +1268,7 @@ $offset = ($current_page - 1) * $items_per_page;
                             data: [0, 0, 0],
                             backgroundColor: [
                                 '#dc3545',
-                                '#ffc107', 
+                                '#ffc107',
                                 '#27ae60'
                             ],
                             borderWidth: 2,
@@ -1204,6 +1442,7 @@ $offset = ($current_page - 1) * $items_per_page;
                 const flaggedDate = new Date(record.date_flagged);
                 const daysOpen = this.calculateDaysOpen(flaggedDate, record.flagged_status);
                 const priority = this.calculatePriority(record.issue_type, daysOpen);
+                const isResolved = record.flagged_status === 'Resolved';
 
                 const content = `
                     <div class="row">
@@ -1259,6 +1498,26 @@ $offset = ($current_page - 1) * $items_per_page;
                             <p class="mb-2">${record.resolution_notes}</p>
                             <small class="text-muted">Resolved on: ${record.resolution_date ? this.formatDate(new Date(record.resolution_date)) : 'N/A'}</small>
                         </div>
+
+                    
+                    ` : ''}
+                    ${record.resolution_type ? `
+                        <div class="details-section">
+                            <h6><i class="fa-solid fa-cogs"></i> Resolution Details</h6>
+                            <div class="child-info-display">
+                                <strong>Resolution Type:</strong> ${record.resolution_type.charAt(0).toUpperCase() + record.resolution_type.slice(1).replace('_', ' ')}
+                            </div>
+                            ${record.current_status ? `
+                                <div class="child-info-display">
+                                    <strong>Current Status:</strong> ${record.current_status}
+                                </div>
+                            ` : ''}
+                            ${record.follow_up_date ? `
+                                <div class="child-info-display">
+                                    <strong>Follow-up Date:</strong> ${flaggedManager.formatDate(new Date(record.follow_up_date))}
+                                </div>
+                            ` : ''}
+                        </div>
                     ` : ''}
                 `;
 
@@ -1268,8 +1527,51 @@ $offset = ($current_page - 1) * $items_per_page;
                     ${record.first_name} ${record.last_name} - ${record.issue_type}
                 `;
 
+                // Disable buttons if resolved
+                const editBtn = document.querySelector('#viewFlaggedModal .btn-success');
+                const resolveBtn = document.querySelector('#viewFlaggedModal .btn-warning');
+
+                if (editBtn) {
+                    editBtn.disabled = isResolved;
+                    if (isResolved) {
+                        editBtn.classList.add('disabled');
+                        editBtn.title = 'Cannot edit resolved records';
+                    } else {
+                        editBtn.classList.remove('disabled');
+                        editBtn.title = 'Edit Record';
+                    }
+                }
+
+                if (resolveBtn) {
+                    resolveBtn.disabled = isResolved;
+                    if (isResolved) {
+                        resolveBtn.classList.add('disabled');
+                        resolveBtn.title = 'Record already resolved';
+                        resolveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Resolved';
+                    } else {
+                        resolveBtn.classList.remove('disabled');
+                        resolveBtn.title = 'Edit Record';
+                        resolveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Edit Record';
+                    }
+                }
+
                 const modal = new bootstrap.Modal(document.getElementById('viewFlaggedModal'));
                 modal.show();
+            }
+
+            clearAddForm() {
+                // Reset form fields
+                document.getElementById('addChildSelect').value = '';
+                document.getElementById('addIssueType').value = '';
+                const addDateInput = document.getElementById('addDateFlagged');
+                addDateInput.type = 'datetime-local';
+                addDateInput.value = this.getLocalDateTimeString(new Date());
+
+                document.getElementById('addFlaggedStatus').value = 'Active';
+                document.getElementById('addDescription').value = '';
+
+                // Hide child info display
+                document.getElementById('addChildInfoDisplay').style.display = 'none';
             }
 
             async editRecord(flaggedId) {
@@ -1295,6 +1597,7 @@ $offset = ($current_page - 1) * $items_per_page;
             showEditModal(record) {
                 const birthDate = new Date(record.birthdate);
                 const age = this.calculateAge(birthDate);
+                const isResolved = record.flagged_status === 'Resolved';
 
                 // Populate form
                 document.getElementById('editFlaggedId').value = record.flagged_id;
@@ -1303,15 +1606,85 @@ $offset = ($current_page - 1) * $items_per_page;
                 document.getElementById('editChildZone').textContent = record.zone_name || 'N/A';
                 document.getElementById('editIssueType').value = record.issue_type;
                 document.getElementById('editFlaggedStatus').value = record.flagged_status;
-                document.getElementById('editDateFlagged').value = record.date_flagged.split(' ')[0]; // Extract date part
+
+                // Set datetime-local and format the date
+                const editDateInput = document.getElementById('editDateFlagged');
+                editDateInput.type = 'datetime-local';
+                const flaggedDateTime = new Date(record.date_flagged);
+                editDateInput.value = this.getLocalDateTimeString(flaggedDateTime);
+
                 document.getElementById('editDescription').value = record.description || '';
+
+                // Clear all resolution-related fields first
+                document.getElementById('resolutionNotes').value = '';
+                const resolutionDateInput = document.getElementById('resolutionDate');
+                resolutionDateInput.type = 'datetime-local';
+                resolutionDateInput.value = '';
+
+                // Clear resolution type selection
+                document.querySelectorAll('.resolution-type-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                document.getElementById('resolutionType').value = '';
+
+                // Clear verification fields
+                document.getElementById('currentStatus').value = '';
+                const followUpInput = document.getElementById('followUpDate');
+                followUpInput.type = 'datetime-local';
+                followUpInput.value = '';
+
+                // Hide verification and follow-up sections
+                document.getElementById('verificationSection').style.display = 'none';
+                document.getElementById('followUpSection').style.display = 'none';
+                document.getElementById('statusConfirmation').style.display = 'none';
+
+                // Disable fields if record is resolved
+                const issueTypeSelect = document.getElementById('editIssueType');
+                const statusSelect = document.getElementById('editFlaggedStatus');
+
+                if (isResolved) {
+                    issueTypeSelect.disabled = true;
+                    statusSelect.disabled = true;
+                    issueTypeSelect.classList.add('disabled');
+                    statusSelect.classList.add('disabled');
+                } else {
+                    issueTypeSelect.disabled = false;
+                    statusSelect.disabled = false;
+                    issueTypeSelect.classList.remove('disabled');
+                    statusSelect.classList.remove('disabled');
+                }
+
+                // Only populate resolution fields if the record actually has resolution data
+                if (record.resolution_type) {
+                    // Auto-select the resolution type if it exists
+                    setTimeout(() => {
+                        selectResolutionType(record.resolution_type);
+                        if (record.current_status) {
+                            document.getElementById('currentStatus').value = record.current_status;
+                            document.getElementById('statusConfirmation').style.display = 'block';
+                        }
+                        if (record.follow_up_date) {
+                            const followUpInput = document.getElementById('followUpDate');
+                            followUpInput.type = 'datetime-local';
+                            const followUpDateTime = new Date(record.follow_up_date);
+                            followUpInput.value = this.getLocalDateTimeString(followUpDateTime);
+                        }
+                    }, 100);
+                }
 
                 // Handle resolution section
                 const resolutionSection = document.getElementById('resolutionSection');
                 if (record.flagged_status === 'Resolved') {
                     resolutionSection.style.display = 'block';
+                    // Only set resolution notes and date if they exist for this record
                     document.getElementById('resolutionNotes').value = record.resolution_notes || '';
-                    document.getElementById('resolutionDate').value = record.resolution_date ? record.resolution_date.split(' ')[0] : '';
+
+                    if (record.resolution_date) {
+                        const resolutionDateTime = new Date(record.resolution_date);
+                        resolutionDateInput.value = this.getLocalDateTimeString(resolutionDateTime);
+                    } else {
+                        resolutionDateInput.value = this.getLocalDateTimeString(new Date());
+                    }
                 } else {
                     resolutionSection.style.display = 'none';
                 }
@@ -1319,6 +1692,7 @@ $offset = ($current_page - 1) * $items_per_page;
                 const modal = new bootstrap.Modal(document.getElementById('editFlaggedModal'));
                 modal.show();
             }
+
 
             async deleteRecord(flaggedId) {
                 const result = await Swal.fire({
@@ -1336,7 +1710,9 @@ $offset = ($current_page - 1) * $items_per_page;
                         $.ajax({
                             url: '../backend/admin/flagged/delete_flagged_record.php',
                             type: 'POST',
-                            data: { flagged_id: flaggedId },
+                            data: {
+                                flagged_id: flaggedId
+                            },
                             success: async (response) => {
                                 if (response.status === 'success') {
                                     Swal.fire({
@@ -1345,7 +1721,7 @@ $offset = ($current_page - 1) * $items_per_page;
                                         text: 'Flagged record has been deleted.',
                                         confirmButtonColor: '#27ae60'
                                     }).then((result) => {
-                                        if(result){
+                                        if (result) {
                                             window.location.reload();
                                         }
                                     });
@@ -1392,6 +1768,36 @@ $offset = ($current_page - 1) * $items_per_page;
             flaggedManager.showAddChildInfo();
         }
 
+        function selectResolutionType(type) {
+            // Remove selected class from all cards
+            document.querySelectorAll('.resolution-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Add selected class to clicked card
+            document.querySelector(`[data-type="${type}"]`).classList.add('selected');
+
+            // Set hidden input value
+            document.getElementById('resolutionType').value = type;
+
+            // Show/hide verification section based on type
+            const verificationSection = document.getElementById('verificationSection');
+            const followUpSection = document.getElementById('followUpSection');
+
+            if (type === 'improved') {
+                verificationSection.style.display = 'block';
+                followUpSection.style.display = 'block';
+            } else {
+                verificationSection.style.display = 'none';
+                if (type === 'referral') {
+                    followUpSection.style.display = 'block';
+                } else {
+                    followUpSection.style.display = 'none';
+                }
+            }
+        }
+
+
         async function addFlaggedRecord() {
             const childId = document.getElementById('addChildSelect').value;
             const issueType = document.getElementById('addIssueType').value;
@@ -1429,6 +1835,9 @@ $offset = ($current_page - 1) * $items_per_page;
                                 text: 'Flagged record added successfully.',
                                 confirmButtonColor: '#27ae60'
                             }).then(() => {
+                                // Clear the form before hiding modal
+                                flaggedManager.clearAddForm();
+
                                 bootstrap.Modal.getInstance(document.getElementById('addFlaggedRecordModal')).hide();
                                 flaggedManager.loadRecords().then(() => {
                                     flaggedManager.loadTableView();
@@ -1475,6 +1884,12 @@ $offset = ($current_page - 1) * $items_per_page;
             const resolutionNotes = document.getElementById('resolutionNotes').value;
             const resolutionDate = document.getElementById('resolutionDate').value;
 
+            // Get resolution type from form
+            const resolutionType = document.getElementById('resolutionType')?.value || '';
+            const currentStatus = document.getElementById('currentStatus')?.value || '';
+            const followUpDate = document.getElementById('followUpDate')?.value || '';
+
+            // Validation
             if (!flaggedId || !issueType || !status) {
                 Swal.fire({
                     icon: 'error',
@@ -1485,7 +1900,79 @@ $offset = ($current_page - 1) * $items_per_page;
                 return;
             }
 
+            // Additional validation for resolved status
+            if (status === 'Resolved') {
+                if (!resolutionNotes) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Resolution Required',
+                        text: 'Please provide resolution notes when marking as resolved.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+
+                if (resolutionType === 'improved' && !currentStatus) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Status Verification Required',
+                        text: 'Please select the current status to verify improvement.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+            }
+
+            //dates validation
+            const now = new Date();
+            if (resolutionDate && new Date(resolutionDate) > now) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Resolution Date',
+                    text: 'Resolution date cannot be in the future.',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+
+            // Additional validation for follow-up date
+            if (followUpDate && new Date(followUpDate) < now) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Follow-Up Date',
+                    text: 'Follow-up date cannot be in the past.',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+
             try {
+                // Show loading indicator
+                const loadingSwal = Swal.fire({
+                    title: 'Updating...',
+                    text: 'Please wait while we update the record.',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                const areYouSure = await Swal.fire({
+                    title: 'Confirm Update',
+                    text: "Are you sure you want to update this flagged record?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, update it!'
+                });
+
+                if (!areYouSure.isConfirmed) {
+                    loadingSwal.close();
+                    return;
+                }
+
                 $.ajax({
                     url: '../backend/admin/flagged/update_flagged_record.php',
                     type: 'POST',
@@ -1496,9 +1983,14 @@ $offset = ($current_page - 1) * $items_per_page;
                         flagged_status: status,
                         description: description,
                         resolution_notes: resolutionNotes,
-                        resolution_date: resolutionDate
+                        resolution_date: resolutionDate,
+                        resolution_type: resolutionType,
+                        current_status: currentStatus,
+                        follow_up_date: followUpDate
                     },
                     success: function(result) {
+                        loadingSwal.close();
+
                         if (result.status === 'success') {
                             Swal.fire({
                                 icon: 'success',
@@ -1506,15 +1998,17 @@ $offset = ($current_page - 1) * $items_per_page;
                                 text: 'Flagged record updated successfully.',
                                 confirmButtonColor: '#27ae60'
                             }).then(() => {
-                                bootstrap.Modal.getInstance(document.getElementById('editFlaggedModal')).hide();
-                                flaggedManager.loadRecords().then(() => {
-                                    flaggedManager.loadTableView();
-                                    flaggedManager.updateStatistics();
-                                    flaggedManager.loadRecentActivity();
-                                    flaggedManager.updateChart(flaggedManager.currentChartType);
-                                });
+                                // Close modal
+                                const modal = bootstrap.Modal.getInstance(document.getElementById('editFlaggedModal'));
+                                if (modal) {
+                                    modal.hide();
+                                }
+
+                                // Refresh data without creating circular calls
+                                refreshFlaggedData();
                             });
                         } else {
+                            console.error('Error updating flagged record:', result);
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
@@ -1524,7 +2018,10 @@ $offset = ($current_page - 1) * $items_per_page;
                         }
                     },
                     error: function(xhr, status, error) {
+                        loadingSwal.close();
                         console.error('Error updating flagged record:', error);
+                        console.error('Response:', xhr.responseText);
+
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
@@ -1541,6 +2038,32 @@ $offset = ($current_page - 1) * $items_per_page;
                     text: 'An error occurred while updating the flagged record.',
                     confirmButtonColor: '#dc3545'
                 });
+            }
+        }
+
+        // Separate function to refresh data - prevents circular calls
+        async function refreshFlaggedData() {
+            try {
+                await flaggedManager.loadRecords();
+                flaggedManager.loadTableView();
+                flaggedManager.updateStatistics();
+                flaggedManager.loadRecentActivity();
+                flaggedManager.updateChart(flaggedManager.currentChartType);
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+            }
+        }
+
+        // Separate function to refresh data - prevents circular calls
+        async function refreshFlaggedData() {
+            try {
+                await flaggedManager.loadRecords();
+                flaggedManager.loadTableView();
+                flaggedManager.updateStatistics();
+                flaggedManager.loadRecentActivity();
+                flaggedManager.updateChart(flaggedManager.currentChartType);
+            } catch (error) {
+                console.error('Error refreshing data:', error);
             }
         }
 
@@ -1577,7 +2100,114 @@ $offset = ($current_page - 1) * $items_per_page;
         }
 
         function exportFlaggedRecords() {
-            window.open('./flagged_data/export_flagged_records.php', '_blank');
+            Swal.fire({
+                title: 'Export Flagged Records',
+                html: `
+                    <div class="text-start">
+                        <div class="mb-3">
+                            <label class="form-label">Status Filter:</label>
+                            <select id="exportStatusFilter" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="Active">Active</option>
+                                <option value="Under Review">Under Review</option>
+                                <option value="Resolved">Resolved</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Issue Type Filter:</label>
+                            <select id="exportIssueTypeFilter" class="form-select">
+                                <option value="">All Issue Types</option>
+                                <option value="Underweight">Underweight</option>
+                                <option value="Overweight">Overweight</option>
+                                <option value="Severely Underweight">Severely Underweight</option>
+                                <option value="Incomplete Vaccination">Incomplete Vaccination</option>
+                                <option value="Growth Concerns">Growth Concerns</option>
+                                <option value="Behavioral Issues">Behavioral Issues</option>
+                                <option value="Medical Concerns">Medical Concerns</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Priority Filter:</label>
+                            <select id="exportPriorityFilter" class="form-select">
+                                <option value="">All Priorities</option>
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Zone Filter:</label>
+                            <select id="exportZoneFilter" class="form-select">
+                                <option value="">All Zones</option>
+                                ${flaggedManager.zones.map(zone => `
+                                    <option value="${zone.zone_id}">${zone.zone_name}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Date Range:</label>
+                            <div class="row">
+                                <div class="col-6">
+                                    <input type="datetime-local" id="exportStartDate" class="form-control" placeholder="Start Date">
+                                </div>
+                                <div class="col-6">
+                                    <input type="datetime-local" id="exportEndDate" class="form-control" placeholder="End Date">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Export',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#27ae60',
+                cancelButtonColor: '#6c757d',
+                width: '500px',
+                preConfirm: () => {
+                    const status = document.getElementById('exportStatusFilter').value;
+                    const issueType = document.getElementById('exportIssueTypeFilter').value;
+                    const priority = document.getElementById('exportPriorityFilter').value;
+                    const zone = document.getElementById('exportZoneFilter').value;
+                    const startDate = document.getElementById('exportStartDate').value;
+                    const endDate = document.getElementById('exportEndDate').value;
+
+                    return {
+                        status: status,
+                        issue_type: issueType,
+                        priority: priority,
+                        zone: zone,
+                        start_date: startDate,
+                        end_date: endDate
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const filters = result.value;
+
+                    // Build query parameters
+                    const params = new URLSearchParams();
+                    if (filters.status) params.append('status', filters.status);
+                    if (filters.issue_type) params.append('issue_type', filters.issue_type);
+                    if (filters.priority) params.append('priority', filters.priority);
+                    if (filters.zone) params.append('zone', filters.zone);
+                    if (filters.search) params.append('search', filters.search);
+                    if (filters.start_date) params.append('start_date', filters.start_date);
+                    if (filters.end_date) params.append('end_date', filters.end_date);
+
+                    // Open export URL with filters
+                    const exportUrl = `./flagged_data/export_flagged_records.php?${params.toString()}`;
+                    window.open(exportUrl, '_blank');
+
+                    // Show success message
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Export Started',
+                        text: 'Your filtered flagged records are being exported.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            });
         }
     </script>
 </body>

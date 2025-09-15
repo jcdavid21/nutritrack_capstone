@@ -494,6 +494,9 @@ $offset = ($current_page - 1) * $items_per_page;
                 <span class="badge bg-secondary" id="totalCount">0 Records</span>
             </div>
             <div class="d-flex gap-2">
+                <select name="zoneFilter" id="zoneFilter" class="form-select form-select-sm">
+                    <option value="">All Zones</option>
+                </select>
                 <select class="form-select form-select-sm" id="statusFilter" onchange="filterVaccines()">
                     <option value="">All Status</option>
                     <option value="Completed">Completed</option>
@@ -502,11 +505,18 @@ $offset = ($current_page - 1) * $items_per_page;
                 </select>
                 <select class="form-select form-select-sm" id="vaccineTypeFilter" onchange="filterVaccines()">
                     <option value="">All Vaccines</option>
-                    <option value="BCG">BCG</option>
-                    <option value="Hepatitis B">Hepatitis B</option>
-                    <option value="DPT-1">DPT-1</option>
-                    <option value="DPT-2">DPT-2</option>
-                    <option value="DPT-3">DPT-3</option>
+                    <?php
+                      $select_vaccine_names = "SELECT DISTINCT vaccine_name FROM tbl_vaccine_record ORDER BY vaccine_name ASC";
+                      $vaccine_result = $conn->query($select_vaccine_names);
+                      $vaccine_results = [];
+                      if ($vaccine_result && $vaccine_result->num_rows > 0) {
+                          while ($vaccine_row = $vaccine_result->fetch_assoc()) {
+                              $vaccine_name = htmlspecialchars($vaccine_row['vaccine_name']);
+                              $vaccine_results[] = $vaccine_name;
+                              echo "<option value=\"$vaccine_name\">$vaccine_name</option>";
+                          }
+                      }
+                    ?>
                 </select>
                 <div class="search-box">
                     <i class="fa-solid fa-search"></i>
@@ -776,6 +786,8 @@ $offset = ($current_page - 1) * $items_per_page;
                 this.children = [];
                 this.users = [];
                 this.currentVaccine = null;
+                this.vaccine_results = [];
+                this.zones = [];
                 this.init();
             }
 
@@ -790,6 +802,8 @@ $offset = ($current_page - 1) * $items_per_page;
 
             setupEventListeners() {
                 document.getElementById('searchInput').addEventListener('input', (e) => this.searchVaccines(e.target.value));
+
+                document.getElementById('zoneFilter').addEventListener('change', () => this.filterZone());
 
                 // Set current datetime for new vaccines
                 const now = new Date();
@@ -808,6 +822,14 @@ $offset = ($current_page - 1) * $items_per_page;
                     const usersResponse = await fetch('./vaccine_data/get_users.php');
                     const usersData = await usersResponse.json();
                     this.users = usersData.users || [];
+
+                    const vaccine_results = JSON.parse('<?php echo json_encode($vaccine_results); ?>');
+                    this.vaccine_results = vaccine_results || [];
+
+                    // Load zones for add child modal
+                    const zonesResponse = await fetch('./flagged_data/get_barangay_zones.php');
+                    const zonesData = await zonesResponse.json();
+                    this.zones = zonesData.zones || [];
 
                     this.populateChildrenDropdown();
                     this.populateUsersDropdown();
@@ -830,14 +852,21 @@ $offset = ($current_page - 1) * $items_per_page;
             populateUsersDropdown() {
                 const addUserSelect = document.getElementById('addAdministeredBy');
                 const editUserSelect = document.getElementById('editAdministeredBy');
+                const zoneFilter = document.getElementById('zoneFilter');
 
                 const options = '<option value="">Select Administrator</option>' +
                     this.users.map(user =>
                         `<option value="${user.user_id}">${user.full_name}</option>`
                     ).join('');
+                
+                const zoneOptions = '<option value="">All Zones</option>' +
+                    this.zones.map(zone =>
+                        `<option value="${zone.zone_id}">${zone.zone_name}</option>`
+                    ).join('');
 
                 addUserSelect.innerHTML = options;
                 editUserSelect.innerHTML = options;
+                zoneFilter.innerHTML = zoneOptions;
             }
 
             async showAddChildInfo() {
@@ -881,7 +910,8 @@ $offset = ($current_page - 1) * $items_per_page;
                         limit: this.itemsPerPage,
                         search: document.getElementById('searchInput')?.value || '',
                         status: document.getElementById('statusFilter')?.value || '',
-                        vaccine_type: document.getElementById('vaccineTypeFilter')?.value || ''
+                        vaccine_type: document.getElementById('vaccineTypeFilter')?.value || '',
+                        zone: document.getElementById('zoneFilter')?.value || ''
                     });
 
                     const response = await fetch(`./vaccine_data/get_vaccines.php?${params}`);
@@ -1045,7 +1075,14 @@ $offset = ($current_page - 1) * $items_per_page;
 
             async updateStatistics() {
                 try {
-                    const response = await fetch('./vaccine_data/get_vaccine_statistics.php');
+                    const params = new URLSearchParams({
+                        search: document.getElementById('searchInput')?.value || '',
+                        status: document.getElementById('statusFilter')?.value || '',
+                        vaccine_type: document.getElementById('vaccineTypeFilter')?.value || '',
+                        zone: document.getElementById('zoneFilter')?.value || ''
+                    });
+
+                    const response = await fetch(`./vaccine_data/get_vaccine_statistics.php?${params}`);
                     const stats = await response.json();
 
                     document.getElementById('totalVaccinesCount').textContent = stats.total || 0;
@@ -1059,7 +1096,14 @@ $offset = ($current_page - 1) * $items_per_page;
 
             async loadRecentVaccines() {
                 try {
-                    const response = await fetch('./vaccine_data/get_recent_vaccines.php');
+                    const params = new URLSearchParams({
+                        search: document.getElementById('searchInput')?.value || '',
+                        status: document.getElementById('statusFilter')?.value || '',
+                        vaccine_type: document.getElementById('vaccineTypeFilter')?.value || '',
+                        zone: document.getElementById('zoneFilter')?.value || ''
+                    });
+
+                    const response = await fetch(`./vaccine_data/get_recent_vaccines.php?${params}`);
                     const data = await response.json();
 
                     const container = document.getElementById('recentVaccines');
@@ -1147,6 +1191,16 @@ $offset = ($current_page - 1) * $items_per_page;
                 this.currentPage = 1;
                 await this.loadVaccines();
                 this.loadTableView();
+                this.updateStatistics();
+                this.loadRecentVaccines();
+            }
+
+            async filterZone() {
+                this.currentPage = 1;
+                await this.loadVaccines();
+                this.loadTableView();
+                this.updateStatistics();
+                this.loadRecentVaccines();
             }
 
             async viewVaccine(vaccineId) {
@@ -1517,10 +1571,103 @@ $offset = ($current_page - 1) * $items_per_page;
             vaccineManager.currentPage = 1;
             await vaccineManager.loadVaccines();
             vaccineManager.loadTableView();
+            vaccineManager.updateStatistics();
+            vaccineManager.loadRecentVaccines();
         }
+        
 
         function exportVaccines() {
-            window.open('./vaccine_data/export_vaccines.php', '_blank');
+
+            Swal.fire({
+                title: 'Export Vaccine Records',
+                html: `
+            <div class="text-start">
+                <div class="mb-3">
+                    <label class="form-label">Status Filter:</label>
+                    <select id="exportStatusFilter" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Ongoing">Ongoing</option>
+                        <option value="Incomplete">Incomplete</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Vaccine Type Filter:</label>
+                    <select id="exportVaccineTypeFilter" class="form-select">
+                        <option value="">All Vaccine Types</option>
+                        ${vaccineManager.vaccine_results.map(vaccine => `<option value="${vaccine}">${vaccine}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Zone Filter:</label>
+                    <select id="exportZoneFilter" class="form-select">
+                        <option value="">All Zones</option>
+                        ${vaccineManager.zones.map(zone => `<option value="${zone.zone_id}">${zone.zone_name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Date Range:</label>
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="date" id="exportStartDate" class="form-control" placeholder="Start Date">
+                        </div>
+                        <div class="col-6">
+                            <input type="date" id="exportEndDate" class="form-control" placeholder="End Date">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `,
+                showCancelButton: true,
+                confirmButtonText: 'Export',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#27ae60',
+                cancelButtonColor: '#6c757d',
+                width: '500px',
+                preConfirm: () => {
+                    const status = document.getElementById('exportStatusFilter').value;
+                    const vaccineType = document.getElementById('exportVaccineTypeFilter').value;
+                    const startDate = document.getElementById('exportStartDate').value;
+                    const endDate = document.getElementById('exportEndDate').value;
+                    const zoneId = document.getElementById('exportZoneFilter').value;
+                    console.log(zoneId)
+
+
+                    return {
+                        status: status,
+                        vaccine_type: vaccineType,
+                        start_date: startDate,
+                        end_date: endDate,
+                        zone_id: zoneId
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const filters = result.value;
+
+                    // Build query parameters
+                    const params = new URLSearchParams();
+                    if (filters.status) params.append('status', filters.status);
+                    if (filters.vaccine_type) params.append('vaccine_type', filters.vaccine_type);
+                    if (filters.search) params.append('search', filters.search);
+                    if (filters.start_date) params.append('start_date', filters.start_date);
+                    if (filters.end_date) params.append('end_date', filters.end_date);
+                    if (filters.zone_id) params.append('zone_id', filters.zone_id);
+
+                    // Open export URL with filters
+                    const exportUrl = `./vaccine_data/export_vaccines.php?${params.toString()}`;
+                    window.open(exportUrl, '_blank');
+
+                    // Show success message
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Export Started',
+                        text: 'Your filtered vaccine records are being exported.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            });
         }
     </script>
 </body>

@@ -19,7 +19,7 @@
         }
 
         // Delete measurement record
-        $delete_query = "DELETE FROM tbl_nutritrion_record WHERE nutrition_id = ?";
+        $delete_query = "DELETE FROM tbl_nutrition_record WHERE nutrition_id = ?";
         $stmt = mysqli_prepare($conn, $delete_query);
         mysqli_stmt_bind_param($stmt, "i", $record_id);
 

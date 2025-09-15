@@ -17,26 +17,45 @@ $flagged_records_query = "SELECT COUNT(*) as count FROM tbl_flagged_record";
 $flagged_records_result = mysqli_query($conn, $flagged_records_query);
 $flagged_records = mysqli_fetch_assoc($flagged_records_result)['count'];
 
-$completed_vaccinated_query = "SELECT COUNT(*) as count FROM tbl_vaccine_record WHERE vaccine_status = 'Completed'";
+$completed_vaccinated_query = "SELECT COUNT(DISTINCT child_id) AS count
+FROM tbl_vaccine_record
+WHERE vaccine_status = 'Completed';";
 $completed_vaccinated_result = mysqli_query($conn, $completed_vaccinated_query);
 $completed_vaccinated = mysqli_fetch_assoc($completed_vaccinated_result)['count'];
 
-// Fetch flagged cases data for bar chart
-$flagged_cases_query = "SELECT DATE_FORMAT(date_flagged, '%Y-%m') as month, COUNT(*) as count FROM tbl_flagged_record GROUP BY DATE_FORMAT(date_flagged, '%Y-%m') ORDER BY month DESC LIMIT 6";
+// Fetch flagged cases data for bar chart - all years by default
+$flagged_cases_query = "SELECT 
+    DATE_FORMAT(date_flagged, '%Y-%m') as month,
+    YEAR(date_flagged) as year,
+    MONTH(date_flagged) as month_num,
+    MONTHNAME(date_flagged) as month_name,
+    COUNT(*) as count 
+    FROM tbl_flagged_record 
+    GROUP BY DATE_FORMAT(date_flagged, '%Y-%m') 
+    ORDER BY month DESC 
+    LIMIT 12";
 $flagged_cases_result = mysqli_query($conn, $flagged_cases_query);
 $flagged_cases_data = [];
 while ($row = mysqli_fetch_assoc($flagged_cases_result)) {
     $flagged_cases_data[] = $row;
 }
 
+// Get available years for filter
+$years_query = "SELECT DISTINCT YEAR(date_flagged) as year FROM tbl_flagged_record ORDER BY year DESC";
+$years_result = mysqli_query($conn, $years_query);
+$available_years = [];
+while ($row = mysqli_fetch_assoc($years_result)) {
+    $available_years[] = $row['year'];
+}
+
 // Fetch nutrition status data for pie chart (latest records only)
 $nutrition_status_query = "SELECT ns.status_name, COUNT(*) as count 
                           FROM (
                               SELECT DISTINCT nr1.child_id, nr1.status_id
-                              FROM tbl_nutritrion_record nr1
+                              FROM tbl_nutrition_record nr1
                               INNER JOIN (
                                   SELECT child_id, MAX(date_recorded) as max_date
-                                  FROM tbl_nutritrion_record
+                                  FROM tbl_nutrition_record
                                   GROUP BY child_id
                               ) nr2 ON nr1.child_id = nr2.child_id AND nr1.date_recorded = nr2.max_date
                           ) latest_records
@@ -80,8 +99,28 @@ while ($row = mysqli_fetch_assoc($zones_result)) {
     $zones[] = $row;
 }
 
-// Fetch vaccination status data for doughnut chart
-$vaccination_status_query = "SELECT vaccine_status, COUNT(*) as count FROM tbl_vaccine_record GROUP BY vaccine_status";
+// Fetch vaccination status data for doughnut chart - count unique children with at least 1 completed vaccine
+$vaccination_status_query = "SELECT 
+    CASE 
+        WHEN completed_children.child_id IS NOT NULL THEN 'Completed'
+        ELSE 'Not Completed'
+    END as vaccine_status,
+    COUNT(*) as count
+FROM (
+    SELECT DISTINCT c.child_id
+    FROM tbl_child c
+    LEFT JOIN (
+        SELECT DISTINCT child_id
+        FROM tbl_vaccine_record 
+        WHERE vaccine_status = 'Completed'
+    ) completed_children ON c.child_id = completed_children.child_id
+) all_children_with_status
+LEFT JOIN (
+    SELECT DISTINCT child_id
+    FROM tbl_vaccine_record 
+    WHERE vaccine_status = 'Completed'
+) completed_children ON all_children_with_status.child_id = completed_children.child_id
+GROUP BY vaccine_status";
 $vaccination_status_result = mysqli_query($conn, $vaccination_status_query);
 $vaccination_data = [];
 while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
@@ -537,6 +576,246 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-filters {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-input {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 200px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .modal-table th {
+            background: #f8f9fa;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-color);
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .modal-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f1f3f4;
+            vertical-align: middle;
+        }
+
+        .modal-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        #childrenTableContainer,
+        #flaggedTableContainer,
+        #vaccinatedTableContainer {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 0 30px;
+        }
+
+        .modal-pagination {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pagination-btn {
+            padding: 8px 16px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .pagination-btn:hover {
+            background: var(--text-color);
+        }
+
+        .pagination-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Make stat cards clickable */
+        .stat-card {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                margin: 5% auto;
+                max-height: 85vh;
+            }
+
+            .modal-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-input {
+                min-width: auto;
+                width: 100%;
+            }
+
+            #childrenTableContainer,
+            #flaggedTableContainer,
+            #vaccinatedTableContainer {
+                margin: 0 15px;
+                max-height: 300px;
+            }
+
+            .modal-header,
+            .modal-filters,
+            .modal-pagination {
+                padding: 15px 20px;
+            }
+
+            .modal-table {
+                font-size: 12px;
+            }
+
+            .modal-table th,
+            .modal-table td {
+                padding: 8px 6px;
+            }
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-under-review {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-active {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .status-resolved {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-completed {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-ongoing {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .status-incomplete {
+            background: #ffebee;
+            color: #c62828;
+        }
     </style>
 </head>
 
@@ -580,7 +859,7 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
             <div class="stat-card vaccinated">
                 <div class="stat-content">
                     <div class="stat-info">
-                        <h3>Completed Vaccinated</h3>
+                        <h3>Vaccinated Children</h3>
                         <div class="stat-number"><?php echo $completed_vaccinated; ?></div>
                     </div>
                     <div class="stat-icon vaccinated">
@@ -594,9 +873,15 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
             <div class="chart-card">
                 <div class="chart-header">
                     <h3 class="chart-title">Flagged Cases Trend</h3>
-                    <p class="chart-subtitle">Monthly flagged cases over the last 6 months</p>
-                    <div class="chart-filters">
-                        <select id="flaggedCasesFilter" class="filter-select">
+                    <p class="chart-subtitle">Monthly flagged cases by year</p>
+                    <div class="chart-filters" style="display: flex; gap: 10px;">
+                        <select id="flaggedCasesYearFilter" class="filter-select">
+                            <option value="all" selected>All Years</option>
+                            <?php foreach ($available_years as $year): ?>
+                                <option value="<?php echo $year; ?>"><?php echo $year; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select id="flaggedCasesZoneFilter" class="filter-select">
                             <option value="all">All Zones</option>
                             <?php foreach ($zones as $zone): ?>
                                 <option value="<?php echo $zone['zone_id']; ?>"><?php echo htmlspecialchars($zone['zone_name']); ?></option>
@@ -629,20 +914,19 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
         </div>
 
         <div class="charts-grid">
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3 class="chart-title">Reports Generated Over Time</h3>
-                    <p class="chart-subtitle">Monthly reports generated in the last 6 months</p>
-                </div>
-                <div class="chart-container">
-                    <canvas id="reportsChart"></canvas>
-                </div>
-            </div>
 
             <div class="chart-card">
                 <div class="chart-header">
                     <h3 class="chart-title">Vaccination Status Overview</h3>
-                    <p class="chart-subtitle">Overall vaccination completion status</p>
+                    <p class="chart-subtitle">Children with at least 1 completed vaccination</p>
+                    <div class="chart-filters">
+                        <select id="vaccinationZoneFilter" class="filter-select">
+                            <option value="all">All Zones</option>
+                            <?php foreach ($zones as $zone): ?>
+                                <option value="<?php echo $zone['zone_id']; ?>"><?php echo htmlspecialchars($zone['zone_name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
                 <div class="pie-chart-container">
                     <canvas id="vaccinationChart"></canvas>
@@ -713,6 +997,163 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
         </div>
     </div>
 
+    <!-- Modals for each card -->
+    <div id="childrenModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Registered Children</h2>
+                <span class="close" data-modal="childrenModal">&times;</span>
+            </div>
+            <div class="modal-filters">
+                <input type="text" id="childrenSearch" placeholder="Search children..." class="filter-input">
+                <select id="childrenZoneFilter" class="filter-select">
+                    <option value="">All Zones</option>
+                    <?php foreach ($zones as $zone): ?>
+                        <option value="<?php echo $zone['zone_id']; ?>"><?php echo htmlspecialchars($zone['zone_name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <select id="childrenGenderFilter" class="filter-select">
+                    <option value="">All Genders</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            <div id="childrenTableContainer">
+                <table class="modal-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Gender</th>
+                            <th>Birthdate</th>
+                            <th>Age</th>
+                            <th>Zone</th>
+                            <th>Registration Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="childrenTableBody">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-pagination">
+                <button id="childrenPrevPage" class="pagination-btn">Previous</button>
+                <span id="childrenPageInfo"></span>
+                <button id="childrenNextPage" class="pagination-btn">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="flaggedModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Flagged Records</h2>
+                <span class="close" data-modal="flaggedModal">&times;</span>
+            </div>
+            <div class="modal-filters">
+                <input type="text" id="flaggedSearch" placeholder="Search flagged records..." class="filter-input">
+                <select id="flaggedStatusFilter" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Under review">Under review</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+                <select id="flaggedIssueFilter" class="filter-select">
+                    <option value="">All Issues</option>
+                    <option value="Underweight">Underweight</option>
+                    <option value="Overweight">Overweight</option>
+                    <option value="Severely Underweight">Severely Underweight</option>
+                    <option value="Incomplete Vaccination">Incomplete Vaccination</option>
+                    <option value="Growth Concerns">Growth Concerns</option>
+                    <option value="Behavioral Issues">Behavioral Issues</option>
+                    <option value="Medical Concerns">Medical Concerns</option>
+                </select>
+            </div>
+            <div id="flaggedTableContainer">
+                <table class="modal-table">
+                    <thead>
+                        <tr>
+                            <th>Child Name</th>
+                            <th>Issue Type</th>
+                            <th>Date Flagged</th>
+                            <th>Status</th>
+                            <th>Zone</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="flaggedTableBody">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-pagination">
+                <button id="flaggedPrevPage" class="pagination-btn">Previous</button>
+                <span id="flaggedPageInfo"></span>
+                <button id="flaggedNextPage" class="pagination-btn">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="vaccinatedModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Vaccinated Children</h2>
+                <span class="close" data-modal="vaccinatedModal">&times;</span>
+            </div>
+            <div class="modal-filters">
+                <input type="text" id="vaccinatedSearch" placeholder="Search vaccinated children..." class="filter-input">
+                <select id="vaccinatedStatusFilter" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Ongoing">Ongoing</option>
+                    <option value="Incomplete">Incomplete</option>
+                </select>
+                <select id="vaccinatedVaccine_typeFilter" class="filter-select">
+                    <option value="">All Vaccines</option>
+                    <?php
+                    $select_vaccine_names = "SELECT DISTINCT vaccine_name FROM tbl_vaccine_record ORDER BY vaccine_name ASC";
+                    $vaccine_result = $conn->query($select_vaccine_names);
+                    $vaccine_results = [];
+                    if ($vaccine_result && $vaccine_result->num_rows > 0) {
+                        while ($vaccine_row = $vaccine_result->fetch_assoc()) {
+                            $vaccine_name = htmlspecialchars($vaccine_row['vaccine_name']);
+                            $vaccine_results[] = $vaccine_name;
+                            echo "<option value=\"$vaccine_name\">$vaccine_name</option>";
+                        }
+                    }
+                    ?>
+                </select>
+                <select id="vaccinatedZoneFilter" class="filter-select">
+                    <option value="">All Zones</option>
+                    <?php foreach ($zones as $zone): ?>
+                        <option value="<?php echo $zone['zone_id']; ?>"><?php echo htmlspecialchars($zone['zone_name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div id="vaccinatedTableContainer">
+                <table class="modal-table">
+                    <thead>
+                        <tr>
+                            <th>Child Name</th>
+                            <th>Vaccine</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Zone</th>
+                            <th>Administered By</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vaccinatedTableBody">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-pagination">
+                <button id="vaccinatedPrevPage" class="pagination-btn">Previous</button>
+                <span id="vaccinatedPageInfo"></span>
+                <button id="vaccinatedNextPage" class="pagination-btn">Next</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('adminSidebar');
@@ -738,37 +1179,65 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
         });
 
         // Global chart variables
-        let flaggedChart, nutritionChart, reportsChart;
+        let flaggedChart, nutritionChart, vaccinationChart;
 
         // Original data
-        const originalFlaggedData = <?php echo json_encode(array_reverse($flagged_cases_data)); ?>;
+        const originalFlaggedData = <?php echo json_encode($flagged_cases_data); ?>;
         const originalNutritionData = <?php echo json_encode($nutrition_data); ?>;
-        const originalReportsData = <?php echo json_encode(array_reverse($reports_data)); ?>;
-        // Add this line after the existing data variables
         const originalVaccinationData = <?php echo json_encode($vaccination_data); ?>;
-        let vaccinationChart;
 
         function initializeCharts() {
             initializeFlaggedChart(originalFlaggedData);
             initializeNutritionChart(originalNutritionData);
             initializeVaccinationChart(originalVaccinationData);
-            initializeReportsChart(originalReportsData);
         }
 
-        function initializeFlaggedChart(data) {
-            const flaggedLabels = data.map(item => {
-                if (!item.month) return 'No Data';
-                const date = new Date(item.month + '-01');
-                return date.toLocaleDateString('en-US', {
-                    month: 'short',
-                    year: 'numeric'
-                });
-            });
-            const flaggedValues = data.map(item => parseInt(item.count || 0));
 
-            if (flaggedLabels.length === 0) {
-                flaggedLabels.push('Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024');
-                flaggedValues.push(0, 0, 0, 0, 0, 0);
+        function initializeFlaggedChart(data) {
+            const yearFilter = document.getElementById('flaggedCasesYearFilter').value;
+
+            let flaggedLabels = [];
+            let flaggedValues = [];
+
+            if (yearFilter === 'all') {
+                // Show last 12 months of data across all years
+                flaggedLabels = data.map(item => {
+                    if (!item.month) return 'No Data';
+                    const date = new Date(item.month + '-01');
+                    return date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                }).reverse(); // Reverse to show chronological order
+
+                flaggedValues = data.map(item => parseInt(item.count || 0)).reverse();
+
+                if (flaggedLabels.length === 0) {
+                    const currentDate = new Date();
+                    for (let i = 11; i >= 0; i--) {
+                        const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+                        flaggedLabels.push(monthDate.toLocaleDateString('en-US', {
+                            month: 'short',
+                            year: 'numeric'
+                        }));
+                        flaggedValues.push(0);
+                    }
+                }
+            } else {
+                // Show 12 months for specific year
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                flaggedLabels = monthNames.map(month => `${month} ${yearFilter}`);
+                flaggedValues = new Array(12).fill(0);
+
+                // Fill in actual data
+                data.forEach(item => {
+                    if (item.month && item.month_num) {
+                        const monthIndex = parseInt(item.month_num) - 1;
+                        if (monthIndex >= 0 && monthIndex < 12) {
+                            flaggedValues[monthIndex] = parseInt(item.count || 0);
+                        }
+                    }
+                });
             }
 
             const flaggedCtx = document.getElementById('flaggedCasesChart').getContext('2d');
@@ -776,6 +1245,11 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
             if (flaggedChart) {
                 flaggedChart.destroy();
             }
+            const flColors = flaggedValues.map(value => {
+                if (value >= 10) return '#d32f2f'; // Red for high counts
+                if (value >= 5) return '#f57c00'; // Orange for medium counts
+                return '#388e3c'; // Green for low counts
+            });
 
             flaggedChart = new Chart(flaggedCtx, {
                 type: 'bar',
@@ -784,17 +1258,8 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
                     datasets: [{
                         label: 'Flagged Cases',
                         data: flaggedValues,
-                        backgroundColor: [
-                            '#ff5722',
-                            '#ff9800',
-                            '#ffc107',
-                            '#4caf50',
-                            '#2196f3',
-                            '#3f51b5',
-                            '#9c27b0',
-                            '#c2185b'
-                        ],
-                        borderColor: '#d84315',
+                        backgroundColor: flColors,
+                        borderColor: '#ffffff',
                         borderWidth: 1,
                         borderRadius: 6,
                         borderSkipped: false,
@@ -949,23 +1414,13 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
 
         function initializeVaccinationChart(data) {
             const vaccinationLabels = data.map(item => {
-                // Make labels more user-friendly
-                switch (item.vaccine_status) {
-                    case 'Completed':
-                        return 'Fully Vaccinated';
-                    case 'Ongoing':
-                        return 'In Progress';
-                    case 'Incomplete':
-                        return 'Incomplete';
-                    default:
-                        return item.vaccine_status;
-                }
+                return item.vaccine_status === 'Completed' ? 'Vaccinated' : 'No Completed Vaccines';
             });
             const vaccinationValues = data.map(item => parseInt(item.count || 0));
 
             if (vaccinationLabels.length === 0) {
-                vaccinationLabels.push('Fully Vaccinated', 'In Progress', 'Incomplete');
-                vaccinationValues.push(0, 0, 0);
+                vaccinationLabels.push('Vaccinated', 'No Completed Vaccines');
+                vaccinationValues.push(0, 0);
             }
 
             const vaccinationCtx = document.getElementById('vaccinationChart').getContext('2d');
@@ -981,9 +1436,8 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
                     datasets: [{
                         data: vaccinationValues,
                         backgroundColor: [
-                            '#4CAF50', // Green for Completed
-                            '#FF9800', // Orange for Ongoing
-                            '#f44336', // Red for Incomplete
+                            '#4CAF50', // Green for completed
+                            '#f44336', // Red for not completed
                         ],
                         borderColor: '#ffffff',
                         borderWidth: 3,
@@ -1009,7 +1463,7 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
                             callbacks: {
                                 label: function(context) {
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((context.parsed * 100) / total).toFixed(1);
+                                    const percentage = total > 0 ? ((context.parsed * 100) / total).toFixed(1) : 0;
                                     return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
                                 }
                             }
@@ -1020,17 +1474,21 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
             });
         }
 
-        // Filter functions
-        function filterFlaggedCases() {
-            const filterValue = document.getElementById('flaggedCasesFilter').value;
+        function filterFlaggedCasesByYear() {
+            const yearValue = document.getElementById('flaggedCasesYearFilter').value;
+            const zoneValue = document.getElementById('flaggedCasesZoneFilter').value;
 
-            if (filterValue === 'all') {
+            if (yearValue === 'all' && zoneValue === 'all') {
                 initializeFlaggedChart(originalFlaggedData);
                 return;
             }
 
-            // Fetch filtered data via AJAX
-            fetch(`../backend/filter_flagged_cases.php?zone_id=${filterValue}`)
+            const params = new URLSearchParams({
+                year: yearValue,
+                zone_id: zoneValue !== 'all' ? zoneValue : ''
+            });
+
+            fetch(`../backend/filter_flagged_cases_by_year.php?${params}`)
                 .then(response => response.json())
                 .then(data => {
                     initializeFlaggedChart(data);
@@ -1061,12 +1519,280 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
                 });
         }
 
+        function filterVaccinationByZone() {
+            const zoneValue = document.getElementById('vaccinationZoneFilter').value;
+
+            if (zoneValue === 'all') {
+                initializeVaccinationChart(originalVaccinationData);
+                return;
+            }
+
+            fetch(`../backend/filter_vaccination_by_zone.php?zone_id=${zoneValue}`)
+                .then(response => response.json())
+                .then(data => {
+                    initializeVaccinationChart(data);
+                })
+                .catch(error => {
+                    console.error('Error filtering vaccination data:', error);
+                    initializeVaccinationChart([]);
+                });
+        }
+
+
         // Event listeners
-        document.getElementById('flaggedCasesFilter').addEventListener('change', filterFlaggedCases);
+        document.getElementById('flaggedCasesYearFilter').addEventListener('change', filterFlaggedCasesByYear);
+        document.getElementById('flaggedCasesZoneFilter').addEventListener('change', filterFlaggedCasesByYear);
+        document.getElementById('vaccinationZoneFilter').addEventListener('change', filterVaccinationByZone);
         document.getElementById('nutritionFilter').addEventListener('change', filterNutrition);
 
         // Initialize all charts on page load
         initializeCharts();
+
+        // Modal Management
+        class ModalManager {
+            constructor() {
+                this.currentPage = {
+                    children: 1,
+                    flagged: 1,
+                    vaccinated: 1
+                };
+                this.filters = {
+                    children: {
+                        search: '',
+                        zone: '',
+                        gender: ''
+                    },
+                    flagged: {
+                        search: '',
+                        status: '',
+                        issue: ''
+                    },
+                    vaccinated: {
+                        search: '',
+                        status: '',
+                        vaccine_type: '',
+                        zone: ''
+                    }
+                };
+                this.init();
+            }
+
+            init() {
+                // Add click events to stat cards
+                document.querySelector('.stat-card.children').addEventListener('click', () => this.openModal('children'));
+                document.querySelector('.stat-card.flagged').addEventListener('click', () => this.openModal('flagged'));
+                document.querySelector('.stat-card.vaccinated').addEventListener('click', () => this.openModal('vaccinated'));
+
+                // Add close events
+                document.querySelectorAll('.close').forEach(closeBtn => {
+                    closeBtn.addEventListener('click', (e) => {
+                        this.closeModal(e.target.dataset.modal);
+                    });
+                });
+
+                // Close modal when clicking outside
+                window.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('modal')) {
+                        this.closeModal(e.target.id);
+                    }
+                });
+
+                // Add filter events
+                this.addFilterEvents();
+                this.addPaginationEvents();
+            }
+
+            openModal(type) {
+                const modal = document.getElementById(`${type}Modal`);
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                this.loadData(type);
+            }
+
+            closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+
+            addFilterEvents() {
+                // Children filters
+                ['childrenSearch', 'childrenZoneFilter', 'childrenGenderFilter'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        const eventType = element.type === 'text' ? 'input' : 'change';
+                        element.addEventListener(eventType, () => {
+                            this.updateFilter('children', id, element.value);
+                            this.loadData('children');
+                        });
+                    }
+                });
+
+                // Flagged filters
+                ['flaggedSearch', 'flaggedStatusFilter', 'flaggedIssueFilter'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        const eventType = element.type === 'text' ? 'input' : 'change';
+                        element.addEventListener(eventType, () => {
+                            this.updateFilter('flagged', id, element.value);
+                            this.loadData('flagged');
+                        });
+                    }
+                });
+
+                // Vaccinated filters
+                ['vaccinatedSearch', 'vaccinatedStatusFilter', 'vaccinatedVaccine_typeFilter', 'vaccinatedZoneFilter'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        const eventType = element.type === 'text' ? 'input' : 'change';
+                        element.addEventListener(eventType, () => {
+                            this.updateFilter('vaccinated', id, element.value);
+                            this.loadData('vaccinated');
+                        });
+                    }
+                });
+            }
+
+            addPaginationEvents() {
+                ['children', 'flagged', 'vaccinated'].forEach(type => {
+                    document.getElementById(`${type}PrevPage`).addEventListener('click', () => {
+                        if (this.currentPage[type] > 1) {
+                            this.currentPage[type]--;
+                            this.loadData(type);
+                        }
+                    });
+
+                    document.getElementById(`${type}NextPage`).addEventListener('click', () => {
+                        this.currentPage[type]++;
+                        this.loadData(type);
+                    });
+                });
+            }
+
+            updateFilter(type, filterId, value) {
+                const filterKey = filterId.replace(`${type}`, '').replace('Filter', '').toLowerCase();
+                this.filters[type][filterKey] = value;
+                this.currentPage[type] = 1; // Reset to first page when filtering
+            }
+
+            loadData(type) {
+                const endpoints = {
+                    children: './child_data/get_dashboard_children.php',
+                    flagged: './flagged_data/get_flagged_records.php',
+                    vaccinated: './vaccine_data/get_vaccines.php'
+                };
+
+                const params = new URLSearchParams({
+                    page: this.currentPage[type],
+                    limit: 10,
+                    ...this.filters[type]
+                });
+
+                fetch(`${endpoints[type]}?${params}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success' || data.records || data.vaccines) {
+                            this.renderTable(type, data);
+                            this.updatePagination(type, data);
+                        } else {
+                            console.error('Error loading data:', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                    });
+            }
+
+            renderTable(type, data) {
+                const tbody = document.getElementById(`${type}TableBody`);
+                tbody.innerHTML = '';
+
+                let records;
+                if (type === 'children') {
+                    records = data.records || [];
+                } else if (type === 'flagged') {
+                    records = data.records || [];
+                } else if (type === 'vaccinated') {
+                    records = data.vaccines || [];
+                }
+
+                if (records.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No data found</td></tr>';
+                    return;
+                }
+
+                records.forEach(record => {
+                    const row = document.createElement('tr');
+
+                    if (type === 'children') {
+                        const age = this.calculateAge(record.birthdate);
+                        row.innerHTML = `
+                    <td>${record.first_name} ${record.last_name}</td>
+                    <td>${record.gender || 'N/A'}</td>
+                    <td>${this.formatDate(record.birthdate)}</td>
+                    <td>${age}</td>
+                    <td>${record.zone_name || 'N/A'}</td>
+                    <td>${this.formatDate(record.created_at)}</td>
+                `;
+                    } else if (type === 'flagged') {
+                        row.innerHTML = `
+                    <td>${record.first_name} ${record.last_name}</td>
+                    <td>${record.issue_type}</td>
+                    <td>${this.formatDate(record.date_flagged)}</td>
+                    <td><span class="status-badge status-${record.flagged_status.toLowerCase().replace(' ', '-')}">${record.flagged_status}</span></td>
+                    <td>${record.zone_name || 'N/A'}</td>
+                    <td>${record.description ? record.description.substring(0, 50) + '...' : 'N/A'}</td>
+                `;
+                    } else if (type === 'vaccinated') {
+                        row.innerHTML = `
+                    <td>${record.first_name} ${record.last_name}</td>
+                    <td>${record.vaccine_name}</td>
+                    <td><span class="status-badge status-${record.vaccine_status.toLowerCase()}">${record.vaccine_status}</span></td>
+                    <td>${this.formatDate(record.vaccine_date)}</td>
+                    <td>${record.zone_name || 'N/A'}</td>
+                    <td>${record.administered_by_name}</td>
+                `;
+                    }
+
+                    tbody.appendChild(row);
+                });
+            }
+
+            updatePagination(type, data) {
+                const total = data.total || 0;
+                const page = data.page || this.currentPage[type];
+                const totalPages = data.total_pages || data.totalPages || Math.ceil(total / 10);
+
+                document.getElementById(`${type}PageInfo`).textContent =
+                    `Page ${page} of ${totalPages} (${total} total)`;
+
+                document.getElementById(`${type}PrevPage`).disabled = page <= 1;
+                document.getElementById(`${type}NextPage`).disabled = page >= totalPages;
+            }
+
+            calculateAge(birthdate) {
+                if (!birthdate) return 'N/A';
+                const today = new Date();
+                const birth = new Date(birthdate);
+                const age = Math.floor((today - birth) / (365.25 * 24 * 60 * 60 * 1000));
+                return `${age} years`;
+            }
+
+            formatDate(dateString) {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+        }
+
+        // Initialize modal manager after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            new ModalManager();
+        });
     </script>
 </body>
 

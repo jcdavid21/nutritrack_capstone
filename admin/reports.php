@@ -480,6 +480,20 @@ $offset = ($current_page - 1) * $items_per_page;
                                 <small class="text-muted">Vaccination Reports</small>
                             </div>
                         </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fa-brands fa-nutritionix text-success fa-3x mb-2"></i>
+                                <h4 class="text-success mb-1" id="nutritionCount">0</h4>
+                                <small class="text-muted">Nutrition Reports</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fa-solid fa-chart-bar text-secondary fa-3x mb-2"></i>
+                                <h4 class="text-secondary mb-1" id="othersCount">0</h4>
+                                <small class="text-muted">Other Reports</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -503,7 +517,11 @@ $offset = ($current_page - 1) * $items_per_page;
                 <span class="badge bg-secondary" id="totalCount">0 Reports</span>
             </div>
             <div class="d-flex gap-2">
-                <select class="form-select form-select-sm" id="reportTypeFilter" onchange="filterReports()">
+                <!-- button for zone filter -->
+                <select name="zoneFilter" id="zoneFilter" class="zoneFilter form-select form-select-sm">
+                    <option value="">All Zones</option>
+                </select>
+                <select class="form-select form-select-sm" id="reportTypeFilter">
                     <option value="">All Report Types</option>
                     <option value="Malnutrition Assessment Report">Malnutrition Assessment</option>
                     <option value="Growth Monitoring Report">Growth Monitoring</option>
@@ -730,6 +748,7 @@ $offset = ($current_page - 1) * $items_per_page;
                 this.totalRecords = 0;
                 this.reports = [];
                 this.children = [];
+                this.zones = [];
                 this.currentReport = null;
                 this.init();
             }
@@ -750,6 +769,10 @@ $offset = ($current_page - 1) * $items_per_page;
                 const now = new Date();
                 now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                 document.getElementById('addReportDate').value = now.toISOString().slice(0, 16);
+
+                document.getElementById('zoneFilter').addEventListener('change', () => this.filterReports());
+
+                document.getElementById('reportTypeFilter').addEventListener('change', () => this.filterReports());
             }
 
             async loadInitialData() {
@@ -759,13 +782,18 @@ $offset = ($current_page - 1) * $items_per_page;
                     const childrenData = await childrenResponse.json();
                     this.children = childrenData.children || [];
 
-                    this.populateChildrenDropdown();
+                    // Load zones for dropdown
+                    const zonesResponse = await fetch('./flagged_data/get_barangay_zones.php');
+                    const zonesData = await zonesResponse.json();
+                    this.zones = zonesData.zones || [];
+
+                    this.populateReportsDropdown();
                 } catch (error) {
                     console.error('Error loading initial data:', error);
                 }
             }
 
-            populateChildrenDropdown() {
+            populateReportsDropdown() {
                 const childSelect = document.getElementById('addChildSelect');
                 childSelect.innerHTML = '<option value="">Select Child</option>';
                 this.children.forEach(child => {
@@ -773,6 +801,15 @@ $offset = ($current_page - 1) * $items_per_page;
                     option.value = child.child_id;
                     option.textContent = `${child.first_name} ${child.last_name}`;
                     childSelect.appendChild(option);
+                });
+
+                const zoneFilter = document.getElementById('zoneFilter');
+                zoneFilter.innerHTML = '<option value="">All Zones</option>';
+                this.zones.forEach(zone => {
+                    const option = document.createElement('option');
+                    option.value = zone.zone_id;
+                    option.textContent = zone.zone_name;
+                    zoneFilter.appendChild(option);
                 });
             }
 
@@ -816,7 +853,8 @@ $offset = ($current_page - 1) * $items_per_page;
                         page: this.currentPage,
                         limit: this.itemsPerPage,
                         search: document.getElementById('searchInput')?.value || '',
-                        report_type: document.getElementById('reportTypeFilter')?.value || ''
+                        report_type: document.getElementById('reportTypeFilter')?.value || '',
+                        zone: document.getElementById('zoneFilter')?.value || ''
                     });
 
                     const response = await fetch(`./reports_data/get_reports.php?${params}`);
@@ -934,8 +972,14 @@ $offset = ($current_page - 1) * $items_per_page;
             timeAgo(date) {
                 const now = new Date();
                 const diffTime = Math.abs(now - date);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
+                const diffMinutes = Math.floor(diffTime / (1000 * 60));
+                const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
+                if (diffHours < 24) return `${diffHours} hours ago`;
+                if (diffDays === 0) return 'Today';
                 if (diffDays === 1) return '1 day ago';
                 if (diffDays < 7) return `${diffDays} days ago`;
                 if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
@@ -945,7 +989,13 @@ $offset = ($current_page - 1) * $items_per_page;
 
             async updateStatistics() {
                 try {
-                    const response = await fetch('./reports_data/get_report_statistics.php');
+                    const params = new URLSearchParams({
+                        search: document.getElementById('searchInput')?.value || '',
+                        report_type: document.getElementById('reportTypeFilter')?.value || '',
+                        zone: document.getElementById('zoneFilter')?.value || ''
+                    });
+
+                    const response = await fetch(`./reports_data/get_report_statistics.php?${params}`);
                     const stats = await response.json();
 
                     document.getElementById('totalReportsCount').textContent = stats.total || 0;
@@ -957,6 +1007,8 @@ $offset = ($current_page - 1) * $items_per_page;
                     document.getElementById('malnutritionReports').textContent = stats.malnutrition || 0;
                     document.getElementById('growthReports').textContent = stats.growth || 0;
                     document.getElementById('vaccinationReports').textContent = stats.vaccination || 0;
+                    document.getElementById('nutritionCount').textContent = stats.nutrition || 0;
+                    document.getElementById('othersCount').textContent = stats.others || 0;
                 } catch (error) {
                     console.error('Error updating statistics:', error);
                 }
@@ -1050,6 +1102,14 @@ $offset = ($current_page - 1) * $items_per_page;
                 this.currentPage = 1;
                 await this.loadReports();
                 this.loadTableView();
+                this.updateStatistics();
+            }
+
+            async filterReports() {
+                this.currentPage = 1;
+                await this.loadReports();
+                this.loadTableView();
+                this.updateStatistics();
             }
 
             async viewReport(reportId) {
@@ -1337,6 +1397,19 @@ $offset = ($current_page - 1) * $items_per_page;
                 return;
             }
 
+
+            const currentDateTime = new Date();
+            const selectedDateTime = new Date(reportDate);
+            if (selectedDateTime > currentDateTime) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Date',
+                    text: 'Report date cannot be in the future.',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+
             try {
                 $.ajax({
                     url: '../backend/admin/reports/update_report.php',
@@ -1407,14 +1480,87 @@ $offset = ($current_page - 1) * $items_per_page;
             }
         }
 
-        async function filterReports() {
-            reportsManager.currentPage = 1;
-            await reportsManager.loadReports();
-            reportsManager.loadTableView();
-        }
-
         function exportReports() {
-            window.open('./reports_data/export_reports.php', '_blank');
+            Swal.fire({
+                title: 'Export Reports',
+                html: `
+            <div class="text-start">
+                <div class="mb-3">
+                    <label class="form-label">Report Type Filter:</label>
+                    <select id="exportReportTypeFilter" class="form-select">
+                        <option value="">All Report Types</option>
+                        <option value="Malnutrition">Malnutrition</option>
+                        <option value="Growth">Growth</option>
+                        <option value="Vaccination">Vaccination</option>
+                        <option value="General Health">General Health</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Zone Filter:</label>
+                    <select id="exportZoneFilter" class="form-select">
+                        <option value="">All Zones</option>
+                        ${reportsManager.zones.map(zone =>
+                            `<option value="${zone.zone_id}">${zone.zone_name}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Date Range:</label>
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="date" id="exportStartDate" class="form-control" placeholder="Start Date">
+                        </div>
+                        <div class="col-6">
+                            <input type="date" id="exportEndDate" class="form-control" placeholder="End Date">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `,
+                showCancelButton: true,
+                confirmButtonText: 'Export',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#27ae60',
+                cancelButtonColor: '#6c757d',
+                width: '500px',
+                preConfirm: () => {
+                    const reportType = document.getElementById('exportReportTypeFilter').value;
+                    const zone = document.getElementById('exportZoneFilter').value;
+                    const startDate = document.getElementById('exportStartDate').value;
+                    const endDate = document.getElementById('exportEndDate').value;
+
+                    return {
+                        report_type: reportType,
+                        zone: zone,
+                        start_date: startDate,
+                        end_date: endDate
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const filters = result.value;
+
+                    // Build query parameters
+                    const params = new URLSearchParams();
+                    if (filters.report_type) params.append('report_type', filters.report_type);
+                    if (filters.zone) params.append('zone', filters.zone);
+                    if (filters.start_date) params.append('start_date', filters.start_date);
+                    if (filters.end_date) params.append('end_date', filters.end_date);
+
+                    // Open export URL with filters
+                    const exportUrl = `./reports_data/export_reports.php?${params.toString()}`;
+                    window.open(exportUrl, '_blank');
+
+                    // Show success message
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Export Started',
+                        text: 'Your filtered reports are being exported.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            });
         }
     </script>
 </body>

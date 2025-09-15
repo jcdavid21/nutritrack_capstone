@@ -20,7 +20,7 @@ if (isset($_POST["record_id"]) && isset($_POST["weight"]) && isset($_POST["heigh
     $date_recorded = $_POST["date_recorded"];
 
     // Update nutrition record
-    $update_query = "UPDATE tbl_nutritrion_record 
+    $update_query = "UPDATE tbl_nutrition_record 
                          SET date_recorded = ?, weight = ?, height = ?, status_id = ?, bmi = ?, recorded_by = ?
                          WHERE nutrition_id = ?";
     $stmt = mysqli_prepare($conn, $update_query);

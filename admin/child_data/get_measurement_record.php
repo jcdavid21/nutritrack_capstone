@@ -26,7 +26,7 @@ try {
             c.gender,
             c.birthdate,
             ns.status_name
-        FROM tbl_nutritrion_record nr
+        FROM tbl_nutrition_record nr
         LEFT JOIN tbl_child c ON nr.child_id = c.child_id
         LEFT JOIN tbl_nutrition_status ns ON nr.status_id = ns.status_id
         WHERE nr.nutrition_id = ?

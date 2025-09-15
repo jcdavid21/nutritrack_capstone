@@ -35,7 +35,7 @@ if(isset($_POST["username"]) && isset($_POST["password"])) {
             exit();
         }
     } else {
-        echo json_encode(["status" => "error", "message" => "Email not found."]);
+        echo json_encode(["status" => "error", "message" => "Username not found."]);
         exit();
     }
 } else {

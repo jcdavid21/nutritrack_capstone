@@ -22,7 +22,7 @@ pwShowHide.forEach((eyeIcon) => {
 
 
 $(document).ready(function () {
-    $("#login").on("click", function (e) {
+    $("#loginForm").on("submit", function (e) {
         e.preventDefault();
         const username = $(this).closest(".login").find("#username").val();
         const login_password = $(this).closest(".login").find("#password").val();
@@ -51,17 +51,9 @@ $(document).ready(function () {
                         title: 'Success',
                         text: responseData.message,
                     }).then((isConfirmed) => {
-                        if (isConfirmed.isConfirmed && responseData.role_id === 1) {
-                            window.location.href = "./menu.php";
-                        }else if(isConfirmed.isConfirmed && responseData.role_id === 2){
+                        if(isConfirmed.isConfirmed && responseData.role_id === 2){
                             window.location.href = "../admin/dashboard.php";
                         }else if(isConfirmed.isConfirmed && responseData.role_id === 3){
-                            Swal.fire({
-                                icon: 'info',
-                                title: 'Still working on it!',
-                                text: 'This role access is still under development. Please check back soon.',
-                            });
-                        }else{
                             Swal.fire({
                                 icon: 'warning',
                                 title: 'No Permission',

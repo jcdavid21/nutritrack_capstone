@@ -5,6 +5,9 @@ include "../../backend/config.php";
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$zone = isset($_GET['zone']) ? trim($_GET['zone']) : '';
+$startDate = isset($_GET['startDate']) ? trim($_GET['startDate']) : '';
+$endDate = isset($_GET['endDate']) ? trim($_GET['endDate']) : '';
 
 $offset = ($page - 1) * $limit;
 
@@ -14,11 +17,11 @@ $base_query = "FROM tbl_child tc
                LEFT JOIN (
                    SELECT nr1.child_id, nr1.nutrition_id, nr1.weight, nr1.height, nr1.bmi, 
                           nr1.date_recorded, nr1.status_id, tns.status_name
-                   FROM tbl_nutritrion_record nr1
+                   FROM tbl_nutrition_record nr1
                    LEFT JOIN tbl_nutrition_status tns ON nr1.status_id = tns.status_id
                    WHERE nr1.date_recorded = (
                        SELECT MAX(nr2.date_recorded) 
-                       FROM tbl_nutritrion_record nr2 
+                       FROM tbl_nutrition_record nr2 
                        WHERE nr2.child_id = nr1.child_id
                    )
                ) latest_record ON tc.child_id = latest_record.child_id";
@@ -30,8 +33,23 @@ $params = [];
 // Add search filter if provided
 if (!empty($search)) {
     $where_clause .= " AND (tc.first_name LIKE ? OR tc.last_name LIKE ? OR tb.zone_name LIKE ?)";
-    $search_param = "%{$search}%";
+    $search_param = "{$search}%";  // Removed % from the beginning
     $params = [$search_param, $search_param, $search_param];
+}
+
+if( !empty($zone) ) {
+    $where_clause .= " AND tb.zone_id = ?";
+    $params[] = $zone;
+}
+
+if( !empty($startDate) ) {
+    $where_clause .= " AND DATE(latest_record.date_recorded) >= ?";
+    $params[] = $startDate;
+}
+
+if( !empty($endDate) ) {
+    $where_clause .= " AND DATE(latest_record.date_recorded) <= ?";
+    $params[] = $endDate;
 }
 
 // Get total count

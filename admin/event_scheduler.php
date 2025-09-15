@@ -573,7 +573,7 @@ $total_pages = ceil($total_items / $items_per_page);
                                                 if ($result_zones && $result_zones->num_rows > 0) {
                                                     while ($zone = $result_zones->fetch_assoc()) {
                                                 ?>
-                                                        <option value="<?php echo $zone['zone_id']; ?>">
+                                                        <option value="<?php echo $zone['zone_id']; ?>" >
                                                             <?php echo htmlspecialchars($zone['zone_name']); ?>
                                                         </option>
                                                 <?php
@@ -621,6 +621,8 @@ $total_pages = ceil($total_items / $items_per_page);
             // Show modal
             const editModal = new bootstrap.Modal(document.getElementById(`editEventModal${eventId}`));
             editModal.show();
+
+            document.getElementById(`editEventZone${eventId}`).value = event.zone_id;
 
             // Remove modal from DOM when closed
             document.getElementById(`editEventModal${eventId}`).addEventListener('hidden.bs.modal', function() {

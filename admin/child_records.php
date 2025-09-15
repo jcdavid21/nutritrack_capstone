@@ -363,6 +363,44 @@ $offset = ($current_page - 1) * $items_per_page;
             margin-bottom: 15px;
             color: var(--border-grey);
         }
+
+        .date-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .date-filter-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+            font-weight: 500;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .date-filter-group input[type="date"] {
+            font-size: 0.875rem;
+        }
+
+        .date-filter-group .btn {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .date-filter-group {
+                flex-wrap: wrap;
+                gap: 3px;
+            }
+
+            .date-filter-group input[type="date"] {
+                width: 130px !important;
+            }
+
+            .date-filter-label {
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 
@@ -386,9 +424,6 @@ $offset = ($current_page - 1) * $items_per_page;
                         </button>
                         <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#addChildModal">
                             <i class="fa-solid fa-user-plus"></i> Add Child
-                        </button>
-                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addMeasurementModal">
-                            <i class="fa-solid fa-plus"></i> Add Measurement
                         </button>
                     </div>
                 </div>
@@ -434,23 +469,54 @@ $offset = ($current_page - 1) * $items_per_page;
                 <div class="stat-card">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <div class="stat-number" id="recentRecordsCount">0</div>
-                            <div class="stat-label">This Month</div>
+                            <div class="stat-number" id="severeCount">0</div>
+                            <div class="stat-label">Severely Underweight</div>
                         </div>
-                        <i class="fa-solid fa-calendar text-info fa-2x"></i>
+                        <i class="fa-solid fa-exclamation-triangle text-warning fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="stat-number" id="overweightCount">0</div>
+                            <div class="stat-label">Overweight</div>
+                        </div>
+                        <i class="fa-solid fa-exclamation-triangle text-warning fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="stat-number" id="noWeightCount">0</div>
+                            <div class="stat-label">No Weight Record</div>
+                        </div>
+                        <i class="fa-solid fa-exclamation-triangle text-warning fa-2x"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="d-flex align-items-center gap-3">
-                <h3 class="mb-0">Nutrition Records</h3>
-                <span class="badge bg-secondary" id="totalRecordsCount">0 Records</span>
-            </div>
-            <div class="search-box">
-                <i class="fa-solid fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Search children...">
+        <div class="row">
+            <div class="d-flex align-items-center gap-3 flex-wrap col-md-12 justify-content-md-end mb-2">
+                <select name="zoneFilter" id="zoneFilter" class="form-select form-select-sm" style="width: 180px;">
+                    <option value="">All Zones</option>
+                </select>
+                <div class="date-filter-group">
+                    <input type="date" id="startDateFilter" class="form-control form-control-sm" style="width: 150px;" title="Start Date">
+                    <span class="mx-1 text-muted">to</span>
+                    <input type="date" id="endDateFilter" class="form-control form-control-sm" style="width: 150px;" title="End Date">
+                    <button type="button" class="btn btn-sm btn-outline-secondary ms-1" onclick="clearDateFilter()" title="Clear Date Filter">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+                <div class="search-box">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search children...">
+                </div>
             </div>
         </div>
 
@@ -813,6 +879,115 @@ $offset = ($current_page - 1) * $items_per_page;
         </div>
     </div>
 
+    <!-- Add Parent Details Modal -->
+    <div class="modal fade" id="addParentDetails" tabindex="-1" aria-labelledby="addParentDetailsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addParentDetailsLabel">
+                        <i class="fa-solid fa-user-plus"></i>
+                        Add New Parent Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addParentDetailsForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="childIdParent" readonly style="background-color: #f8f9fa;">
+                                    <label for="childIdParent">
+                                        <i class="fa-solid fa-child"></i> Child ID
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="childNameParent" readonly style="background-color: #f8f9fa;">
+                                    <label for="childNameParent">
+                                        <i class="fa-solid fa-user"></i> Child Name
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="newFullName" required>
+                                    <label for="newFullName">
+                                        <i class="fa-solid fa-user"></i> Full Name
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="parentContactNumber" minlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <label for="parentContactNumber">
+                                        <i class="fa-solid fa-phone"></i> Contact Number
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="parentOccupation" required>
+                                    <label for="parentOccupation">
+                                        <i class="fa-solid fa-briefcase"></i> Occupation
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <select class="form-select" id="parentRelationship" required>
+                                        <option value="" disabled selected>Select Relationship</option>
+                                        <option value="Father">Father</option>
+                                        <option value="Mother">Mother</option>
+                                        <option value="Guardian">Guardian</option>
+                                    </select>
+                                    <label for="parentRelationship">
+                                        <i class="fa-solid fa-heart"></i> Relationship
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-gradient" onclick="addParentDetails()">
+                        <i class="fa-solid fa-save"></i> Add Parent
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Parent Details Modal -->
+    <div class="modal fade" id="editParentDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-user-edit"></i>
+                        Edit Parent Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="editParentDetailsContent">
+                    <!-- Content will be dynamically populated -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-gradient" onclick="saveParentDetails()">
+                        <i class="fa-solid fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         class NutritionRecordsManager {
@@ -848,9 +1023,14 @@ $offset = ($current_page - 1) * $items_per_page;
 
                 // Child selection for add modal
                 document.getElementById('childSelect').addEventListener('change', (e) => {
-                    this.clearMeasurementInputs();
-                    this.showChildInfo(e.target.value);
+                    // Only allow changes if not disabled
+                    if (!e.target.disabled) {
+                        this.clearMeasurementInputs();
+                        this.showChildInfo(e.target.value);
+                    }
                 });
+
+                document.getElementById('zoneFilter').addEventListener('change', (e) => this.filterByZone(e.target.value));
 
                 // BMI and status auto-calculation for add modal
                 document.getElementById('weightInput').addEventListener('input', () => this.calculateBMIAndStatus());
@@ -881,6 +1061,9 @@ $offset = ($current_page - 1) * $items_per_page;
                     document.getElementById('addChildForm').reset();
                     document.getElementById('newCurrentAge').value = '';
                 });
+
+                document.getElementById('startDateFilter').addEventListener('change', () => this.filterRecords());
+                document.getElementById('endDateFilter').addEventListener('change', () => this.filterRecords());
             }
 
 
@@ -891,7 +1074,9 @@ $offset = ($current_page - 1) * $items_per_page;
                     'editMeasurementModal',
                     'childDetailsModal',
                     'editChildDetailsModal',
-                    'addChildModal'
+                    'addChildModal',
+                    'addParentDetails',
+                    'editParentDetailsModal'
                 ];
 
                 // Add event listeners for each modal
@@ -916,13 +1101,19 @@ $offset = ($current_page - 1) * $items_per_page;
                 });
             }
 
+            // Modified clearMeasurementInputs to ensure status is always readonly
             clearMeasurementInputs() {
                 document.getElementById('weightInput').value = '';
                 document.getElementById('heightInput').value = '';
                 document.getElementById('bmiDisplay').value = '';
                 document.getElementById('statusSelect').value = '';
+
+                // Make status select readonly with appropriate message
+                this.makeStatusSelectReadOnly('statusSelect', true, 'Please enter weight and height');
             }
 
+
+            // Modified clearAllInputs to handle status select properly
             clearAllInputs() {
                 // Clear add modal
                 document.getElementById('addMeasurementForm').reset();
@@ -930,15 +1121,23 @@ $offset = ($current_page - 1) * $items_per_page;
                 document.getElementById('measurementDate').valueAsDate = new Date();
                 this.clearMeasurementInputs();
 
+                // Make child select editable again
+                this.makeChildSelectEditable();
+
                 // Clear edit modal
                 document.getElementById('editMeasurementForm').reset();
                 document.getElementById('editRecordId').value = '';
                 document.getElementById('editBmiDisplay').value = '';
                 document.getElementById('editStatusSelect').value = '';
 
+                // Make both status selects readonly with appropriate messages
+                this.makeStatusSelectReadOnly('statusSelect', true, 'Please enter weight and height');
+                this.makeStatusSelectReadOnly('editStatusSelect', true, 'Please enter weight and height');
+
                 this.isEditMode = false;
                 this.currentEditRecordId = null;
             }
+
 
             async showChildInfo(childId) {
                 if (!childId) {
@@ -964,6 +1163,7 @@ $offset = ($current_page - 1) * $items_per_page;
                 const weightId = isEditMode ? 'editWeightInput' : 'weightInput';
                 const heightId = isEditMode ? 'editHeightInput' : 'heightInput';
                 const bmiId = isEditMode ? 'editBmiDisplay' : 'bmiDisplay';
+                const statusId = isEditMode ? 'editStatusSelect' : 'statusSelect';
 
                 const weight = parseFloat(document.getElementById(weightId).value);
                 const height = parseFloat(document.getElementById(heightId).value);
@@ -979,26 +1179,306 @@ $offset = ($current_page - 1) * $items_per_page;
                     child = this.children.find(c => c.child_id == childId);
                 }
 
-                if (weight && height && child) {
-                    // Input validation
-                    if (weight < 0.5 || weight > 200) {
-                        document.getElementById(bmiId).value = 'Invalid weight';
-                        return;
-                    }
+                // Always make status readonly initially when inputs change
+                this.makeStatusSelectReadOnly(statusId, true, 'Calculating...');
 
-                    if (height < 30 || height > 250) {
-                        document.getElementById(bmiId).value = 'Invalid height';
-                        return;
-                    }
-
-                    // Calculate BMI
-                    const heightInMeters = height / 100;
-                    const bmi = weight / (heightInMeters * heightInMeters);
-                    document.getElementById(bmiId).value = bmi.toFixed(1);
-                } else {
+                // Clear values if inputs are empty or invalid
+                if (!weight || !height || !child || isNaN(weight) || isNaN(height)) {
                     document.getElementById(bmiId).value = '';
+                    document.getElementById(statusId).value = '';
+                    this.makeStatusSelectReadOnly(statusId, true, 'Please enter weight and height');
+                    return;
+                }
+
+                // Input validation
+                if (weight < 0.5 || weight > 200) {
+                    document.getElementById(bmiId).value = 'Invalid weight (0.5-200kg)';
+                    document.getElementById(statusId).value = '';
+                    this.makeStatusSelectReadOnly(statusId, true, 'Invalid weight range');
+                    return;
+                }
+
+                if (height < 30 || height > 250) {
+                    document.getElementById(bmiId).value = 'Invalid height (30-250cm)';
+                    document.getElementById(statusId).value = '';
+                    this.makeStatusSelectReadOnly(statusId, true, 'Invalid height range');
+                    return;
+                }
+
+                // Calculate BMI with proper precision
+                const heightInMeters = height / 100;
+                const bmi = weight / (heightInMeters * heightInMeters);
+                document.getElementById(bmiId).value = bmi.toFixed(2); // Use 2 decimal places for accuracy
+
+                // Calculate age in months for status determination
+                const birthDate = new Date(child.birthdate);
+                const measurementDate = isEditMode ?
+                    new Date(document.getElementById('editMeasurementDate').value) :
+                    new Date(document.getElementById('measurementDate').value);
+
+                const ageInMonths = this.calculateAgeInMonths(birthDate, measurementDate);
+                const ageInYears = ageInMonths / 12;
+
+                // Age validation for BMI assessment
+                if (ageInYears < 0 || ageInYears > 19) {
+                    document.getElementById(bmiId).value = bmi.toFixed(2);
+                    document.getElementById(statusId).value = '';
+                    this.makeStatusSelectReadOnly(statusId, true, 'Age outside WHO guidelines (0-19 years)');
+                    return;
+                }
+
+                // Determine and auto-set nutritional status using WHO standards
+                const nutritionalStatus = this.determineNutritionalStatus(bmi, ageInMonths, child.gender);
+
+                // Set the status in the dropdown
+                const statusSelect = document.getElementById(statusId);
+                statusSelect.value = nutritionalStatus.id;
+
+                // Make status select read-only and add visual indication
+                this.makeStatusSelectReadOnly(statusId, true, nutritionalStatus.name);
+            }
+
+            getWHOBMIThresholds(ageInYears, gender) {
+                const isMale = gender.toLowerCase() === 'male';
+                const thresholds = {
+                    5: {
+                        male: {
+                            severelyThin: 12.1, // -3SD
+                            thin: 13.3, // -2SD (CORRECTED)
+                            overweight: 17.4 // +1SD
+                        },
+                        female: {
+                            severelyThin: 12.1, // -3SD  
+                            thin: 13.2, // -2SD (CORRECTED)
+                            overweight: 17.1 // +1SD
+                        }
+                    },
+                    6: {
+                        male: {
+                            severelyThin: 12.3, // -3SD
+                            thin: 13.5, // -2SD (CORRECTED - this is the key fix)
+                            overweight: 17.6 // +1SD
+                        },
+                        female: {
+                            severelyThin: 12.2,
+                            thin: 13.4, // -2SD (CORRECTED)
+                            overweight: 17.3
+                        }
+                    },
+                    7: {
+                        male: {
+                            severelyThin: 12.4,
+                            thin: 13.7, // -2SD (CORRECTED)
+                            overweight: 17.9
+                        },
+                        female: {
+                            severelyThin: 12.4,
+                            thin: 13.6, // -2SD (CORRECTED)
+                            overweight: 17.8
+                        }
+                    },
+                    8: {
+                        male: {
+                            severelyThin: 12.5,
+                            thin: 13.9, // -2SD (CORRECTED)
+                            overweight: 18.4
+                        },
+                        female: {
+                            severelyThin: 12.6,
+                            thin: 13.9, // -2SD (CORRECTED)
+                            overweight: 18.3
+                        }
+                    },
+                    9: {
+                        male: {
+                            severelyThin: 12.8,
+                            thin: 14.2, // -2SD (CORRECTED)
+                            overweight: 19.1
+                        },
+                        female: {
+                            severelyThin: 12.8,
+                            thin: 14.2, // -2SD (CORRECTED)
+                            overweight: 18.9
+                        }
+                    },
+                    10: {
+                        male: {
+                            severelyThin: 13.0,
+                            thin: 14.4, // -2SD (CORRECTED)
+                            overweight: 19.8
+                        },
+                        female: {
+                            severelyThin: 13.1,
+                            thin: 14.6, // -2SD (CORRECTED)
+                            overweight: 19.9
+                        }
+                    },
+                    11: {
+                        male: {
+                            severelyThin: 13.3,
+                            thin: 14.8, // -2SD (CORRECTED)
+                            overweight: 20.6
+                        },
+                        female: {
+                            severelyThin: 13.4,
+                            thin: 15.0, // -2SD (CORRECTED)
+                            overweight: 20.7
+                        }
+                    },
+                    12: {
+                        male: {
+                            severelyThin: 13.6,
+                            thin: 15.2, // -2SD (CORRECTED)
+                            overweight: 21.6
+                        },
+                        female: {
+                            severelyThin: 13.8,
+                            thin: 15.5, // -2SD (CORRECTED)
+                            overweight: 21.7
+                        }
+                    },
+                    13: {
+                        male: {
+                            severelyThin: 14.0,
+                            thin: 15.6, // -2SD (CORRECTED)
+                            overweight: 22.6
+                        },
+                        female: {
+                            severelyThin: 14.3,
+                            thin: 16.1, // -2SD (CORRECTED)
+                            overweight: 22.6
+                        }
+                    },
+                    14: {
+                        male: {
+                            severelyThin: 14.4,
+                            thin: 16.1, // -2SD (CORRECTED)
+                            overweight: 23.6
+                        },
+                        female: {
+                            severelyThin: 14.8,
+                            thin: 16.7, // -2SD (CORRECTED)
+                            overweight: 23.3
+                        }
+                    },
+                    15: {
+                        male: {
+                            severelyThin: 14.9,
+                            thin: 16.6, // -2SD (CORRECTED)
+                            overweight: 24.3
+                        },
+                        female: {
+                            severelyThin: 15.2,
+                            thin: 17.2, // -2SD (CORRECTED)
+                            overweight: 23.9
+                        }
+                    },
+                    16: {
+                        male: {
+                            severelyThin: 15.4,
+                            thin: 17.2, // -2SD (CORRECTED)
+                            overweight: 25.0
+                        },
+                        female: {
+                            severelyThin: 15.7,
+                            thin: 17.5, // -2SD (CORRECTED)
+                            overweight: 24.4
+                        }
+                    },
+                    17: {
+                        male: {
+                            severelyThin: 15.8,
+                            thin: 17.7, // -2SD (CORRECTED)
+                            overweight: 25.4
+                        },
+                        female: {
+                            severelyThin: 16.0,
+                            thin: 17.8, // -2SD (CORRECTED)
+                            overweight: 24.7
+                        }
+                    },
+                    18: {
+                        male: {
+                            severelyThin: 16.3,
+                            thin: 18.2, // -2SD (CORRECTED)
+                            overweight: 25.0
+                        },
+                        female: {
+                            severelyThin: 16.3,
+                            thin: 18.0, // -2SD (CORRECTED)
+                            overweight: 25.0
+                        }
+                    },
+                    19: {
+                        male: {
+                            severelyThin: 16.7,
+                            thin: 18.5, // Same as 18.5
+                            overweight: 25.0
+                        },
+                        female: {
+                            severelyThin: 16.5,
+                            thin: 18.5, // Same as 18.5
+                            overweight: 25.0
+                        }
+                    }
+                };
+
+                // Get the closest age or interpolate
+                const age = Math.round(ageInYears);
+                const clampedAge = Math.max(5, Math.min(19, age));
+                const genderKey = isMale ? 'male' : 'female';
+
+                return thresholds[clampedAge][genderKey];
+            }
+
+
+            // Enhanced makeStatusSelectReadOnly method - IMPROVED VERSION
+            makeStatusSelectReadOnly(statusSelectId, isReadOnly, customMessage = null) {
+                const statusSelect = document.getElementById(statusSelectId);
+                if (!statusSelect) return;
+
+                if (isReadOnly) {
+                    statusSelect.disabled = true;
+                    statusSelect.style.backgroundColor = '#e9ecef';
+                    statusSelect.style.cursor = 'not-allowed';
+
+                    // Add a visual indicator that it's auto-calculated
+                    let indicator = statusSelect.parentElement.querySelector('.auto-calculated-indicator');
+                    if (!indicator) {
+                        indicator = document.createElement('small');
+                        indicator.className = 'auto-calculated-indicator text-success mt-1 d-block';
+                        statusSelect.parentElement.appendChild(indicator);
+                    }
+
+                    let message;
+                    if (customMessage) {
+                        if (customMessage.includes('Invalid') || customMessage.includes('Please enter') || customMessage.includes('Age outside') || customMessage.includes('Calculating')) {
+                            indicator.className = 'auto-calculated-indicator text-warning mt-1 d-block';
+                            message = `<i class="fa-solid fa-exclamation-triangle"></i> ${customMessage}`;
+                        } else {
+                            indicator.className = 'auto-calculated-indicator text-success mt-1 d-block';
+                            message = `<i class="fa-solid fa-calculator"></i> Auto-calculated: ${customMessage}`;
+                        }
+                    } else {
+                        indicator.className = 'auto-calculated-indicator text-success mt-1 d-block';
+                        message = '<i class="fa-solid fa-calculator"></i> Auto-calculated using WHO BMI-for-age standards';
+                    }
+
+                    indicator.innerHTML = message;
+
+                } else {
+                    statusSelect.disabled = false;
+                    statusSelect.style.backgroundColor = '';
+                    statusSelect.style.cursor = '';
+
+                    // Remove the indicator
+                    const indicator = statusSelect.parentElement.querySelector('.auto-calculated-indicator');
+                    if (indicator) {
+                        indicator.remove();
+                    }
                 }
             }
+
 
             calculateAgeInMonths(birthDate, measurementDate) {
                 const years = measurementDate.getFullYear() - birthDate.getFullYear();
@@ -1068,63 +1548,54 @@ $offset = ($current_page - 1) * $items_per_page;
                     }
                 };
 
-                let selectedStatus = defaultStatuses.normal; // Default to NORMAL, not severely underweight
+                let selectedStatus = defaultStatuses.normal; // Default to normal
 
-                // Age-specific BMI thresholds (simplified but more accurate)
+                // CORRECTED WHO BMI-for-age classifications
                 if (ageInYears < 2) {
-                    // Infants and toddlers (0-2 years)
-                    if (bmi < 13) {
+                    // 0-23 months: Use weight-for-length standards (simplified)
+                    if (bmi < 13.0) {
                         selectedStatus = defaultStatuses.severelyUnderweight;
-                    } else if (bmi < 15) {
+                    } else if (bmi < 14.5) {
                         selectedStatus = defaultStatuses.underweight;
-                    } else if (bmi > 19) {
-                        selectedStatus = defaultStatuses.overweight;
-                    } else {
+                    } else if (bmi <= 18.0) {
                         selectedStatus = defaultStatuses.normal;
+                    } else {
+                        selectedStatus = defaultStatuses.overweight;
                     }
-                } else if (ageInYears < 5) {
-                    // Preschoolers (2-5 years)
+                } else if (ageInYears >= 2 && ageInYears < 5) {
+                    // 2-5 years: WHO Child Growth Standards
                     if (bmi < 13.5) {
                         selectedStatus = defaultStatuses.severelyUnderweight;
-                    } else if (bmi < 15.5) {
+                    } else if (bmi < 14.8) {
                         selectedStatus = defaultStatuses.underweight;
-                    } else if (bmi > 18) {
-                        selectedStatus = defaultStatuses.overweight;
-                    } else {
+                    } else if (bmi <= 17.8) { // CORRECTED back to proper threshold
                         selectedStatus = defaultStatuses.normal;
+                    } else {
+                        selectedStatus = defaultStatuses.overweight;
                     }
-                } else if (ageInYears < 12) {
-                    // School age (5-12 years)
-                    if (bmi < 14) {
+                } else if (ageInYears >= 5 && ageInYears <= 19) {
+                    // 5-19 years: WHO Growth Reference Standards (CORRECTED)
+                    const thresholds = this.getWHOBMIThresholds(ageInYears, gender);
+
+                    if (bmi < thresholds.severelyThin) {
                         selectedStatus = defaultStatuses.severelyUnderweight;
-                    } else if (bmi < 16) {
+                    } else if (bmi < thresholds.thin) {
                         selectedStatus = defaultStatuses.underweight;
-                    } else if (bmi > 20) {
-                        selectedStatus = defaultStatuses.overweight;
-                    } else {
+                    } else if (bmi <= thresholds.overweight) {
                         selectedStatus = defaultStatuses.normal;
-                    }
-                } else {
-                    // Adolescents (12+ years) - closer to adult BMI ranges
-                    if (bmi < 16) {
-                        selectedStatus = defaultStatuses.severelyUnderweight;
-                    } else if (bmi < 18.5) {
-                        selectedStatus = defaultStatuses.underweight;
-                    } else if (bmi > 25) {
-                        selectedStatus = defaultStatuses.overweight;
                     } else {
-                        selectedStatus = defaultStatuses.normal;
+                        selectedStatus = defaultStatuses.overweight;
                     }
                 }
 
-                // Return the correct format - check if it's from database or default
+                // Return the correct format
                 if (selectedStatus.status_name) {
                     return {
                         name: selectedStatus.status_name,
                         id: selectedStatus.status_id
                     };
                 } else {
-                    return selectedStatus; // Already in correct format
+                    return selectedStatus;
                 }
             }
 
@@ -1188,6 +1659,17 @@ $offset = ($current_page - 1) * $items_per_page;
                         newZoneSelect.appendChild(option);
                     });
                 }
+
+                const editZoneSelect = document.getElementById('zoneFilter');
+                if (editZoneSelect && this.zones) {
+                    editZoneSelect.innerHTML = '<option value="">All Zones</option>';
+                    this.zones.forEach(zone => {
+                        const option = document.createElement('option');
+                        option.value = zone.zone_id;
+                        option.textContent = zone.zone_name;
+                        editZoneSelect.appendChild(option);
+                    });
+                }
             }
 
             async loadRecords() {
@@ -1195,7 +1677,10 @@ $offset = ($current_page - 1) * $items_per_page;
                     const params = new URLSearchParams({
                         page: this.currentPage,
                         limit: this.itemsPerPage,
-                        search: document.getElementById('searchInput')?.value || ''
+                        search: document.getElementById('searchInput')?.value || '',
+                        zone: document.getElementById('zoneFilter')?.value || '',
+                        startDate: document.getElementById('startDateFilter')?.value || '',
+                        endDate: document.getElementById('endDateFilter')?.value || ''
                     });
 
                     const response = await fetch(`./child_data/get_child_nutrition_records.php?${params}`);
@@ -1242,7 +1727,6 @@ $offset = ($current_page - 1) * $items_per_page;
                                 lastRecordDate = parsed;
                             }
                         }
-
 
                         html += `<tr data-child-id="${record.child_id}">
                             <td class="name-cell">
@@ -1331,13 +1815,22 @@ $offset = ($current_page - 1) * $items_per_page;
 
             async updateStatistics() {
                 try {
-                    const response = await fetch('./child_data/get_nutrition_statistics.php');
+                    const params = new URLSearchParams({
+                        search: document.getElementById('searchInput')?.value || '',
+                        zone: document.getElementById('zoneFilter')?.value || '',
+                        startDate: document.getElementById('startDateFilter')?.value || '',
+                        endDate: document.getElementById('endDateFilter')?.value || ''
+                    });
+
+                    const response = await fetch(`./child_data/get_nutrition_statistics.php?${params}`);
                     const stats = await response.json();
 
                     document.getElementById('totalChildrenCount').textContent = stats.total_children || 0;
                     document.getElementById('normalStatusCount').textContent = stats.normal_status || 0;
                     document.getElementById('underweightCount').textContent = stats.underweight || 0;
-                    document.getElementById('recentRecordsCount').textContent = stats.recent_records || 0;
+                    document.getElementById('severeCount').textContent = stats.severe_underweight || 0;
+                    document.getElementById('overweightCount').textContent = stats.overweight || 0;
+                    document.getElementById('noWeightCount').textContent = stats.no_records || 0;
                 } catch (error) {
                     console.error('Error updating statistics:', error);
                 }
@@ -1397,13 +1890,58 @@ $offset = ($current_page - 1) * $items_per_page;
                 this.currentPage = 1;
                 await this.loadRecords();
                 this.loadTableView();
+                await this.updateStatistics(); // Add this line
             }
 
-            quickAddMeasurement(childId) {
+            async filterByZone(zoneId) {
+                this.currentPage = 1;
+                await this.loadRecords();
+                this.loadTableView();
+                await this.updateStatistics(); // Add this line
+            }
+
+            // ADD this new method after filterByZone:
+            async filterRecords() {
+                this.currentPage = 1;
+                await this.loadRecords();
+                this.loadTableView();
+                await this.updateStatistics();
+            }
+
+            // Add this method to your NutritionRecordsManager class
+            makeChildSelectReadOnly(childId = null) {
+                const childSelect = document.getElementById('childSelect');
+                if (childSelect) {
+                    childSelect.disabled = true;
+                    childSelect.style.backgroundColor = '#f8f9fa';
+                    childSelect.style.cursor = 'not-allowed';
+
+                    // If a specific child ID is provided, set it as selected
+                    if (childId) {
+                        childSelect.value = childId;
+                    }
+                }
+            }
+
+            makeChildSelectEditable() {
+                const childSelect = document.getElementById('childSelect');
+                if (childSelect) {
+                    childSelect.disabled = false;
+                    childSelect.style.backgroundColor = '';
+                    childSelect.style.cursor = '';
+                }
+            }
+
+            // Modified quickAddMeasurement method
+            async quickAddMeasurement(childId) {
                 const child = this.children.find(c => c.child_id == childId);
                 if (child) {
                     this.clearAllInputs();
+
+                    // Set the child and make it read-only
                     document.getElementById('childSelect').value = childId;
+                    this.makeChildSelectReadOnly(childId);
+
                     this.showChildInfo(childId);
                     const modal = new bootstrap.Modal(document.getElementById('addMeasurementModal'));
                     modal.show();
@@ -1526,17 +2064,22 @@ $offset = ($current_page - 1) * $items_per_page;
                     const response = await fetch(`./child_data/get_child_details.php?child_id=${childId}`);
                     const data = await response.json();
 
+                    const getParentDetails = await fetch(`./child_data/get_parent_details.php?child_id=${childId}`);
+                    let parentData = await getParentDetails.json();
+                    console.log('Parent Details:', parentData.data);
+
                     if (data.child) {
                         this.currentChildData = data.child;
                         this.currentRecordsData = data.records || [];
-                        this.showChildDetailsModal(data);
+                        this.showChildDetailsModal(data, parentData.data || null);
                     }
                 } catch (error) {
                     console.error('Error loading child details:', error);
                 }
             }
 
-            showChildDetailsModal(data) {
+
+            showChildDetailsModal(data, parentData) {
                 const child = data.child;
                 const records = data.records || [];
                 const birthDate = new Date(child.birthdate);
@@ -1547,6 +2090,7 @@ $offset = ($current_page - 1) * $items_per_page;
                     <i class="fa-solid fa-user-circle"></i>
                     ${child.first_name} ${child.last_name}
                 `;
+                console.log('Parent Data:', parentData);
 
                 const content = `
                     <!-- Top Section: Basic Info and Measurement History -->
@@ -1592,9 +2136,71 @@ $offset = ($current_page - 1) * $items_per_page;
                                     </div>
                                 </div>
                             </div>
+
                         </div>
+
+                        <div class="col-md-6" style="max-height: 600px; overflow-y: auto;">
+                            <button class="btn btn-sm btn-outline-primary ms-2 mb-4" style="margin-top: 10px;"
+                                onclick="nutritionManager.addParentDetails(${child.child_id})">
+                                <i class="fa-solid fa-plus"></i> Add Parent Info
+                            </button>
+                            ${parentData ? (() => {
+                                // Ensure parentData is always an array
+                                const parentArray = Array.isArray(parentData) ? parentData : [parentData];
+                                return parentArray.map(parent => `
+                                <div class="card" style="margin-bottom: 20px;">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fa-solid fa-info-circle"></i> Parents Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="info-field">
+                                            <strong>Full Name:</strong> ${parent.parent_name}
+                                        </div>
+                                        <div class="info-field">
+                                            <strong>Contact:</strong> ${parent.contact}
+                                        </div>
+                                        <div class="info-field">
+                                            <strong>Occupation:</strong> ${parent.occupation}
+                                        </div>
+                                        <div class="info-field">
+                                            <strong>Relationship:</strong> ${parent.relationship}
+                                        </div>
+                                        <div class="info-field gap-2"> 
+                                            <div class="edit-child-info" style="font-size: 14px;">
+                                            Edit Parent Info:
+                                            <button class="btn btn-sm btn-outline-primary ms-2"
+                                                onclick="nutritionManager.editParentDetails(${parent.parent_id})">
+                                                    <i class="fa-solid fa-edit"></i> Edit
+                                                </button>
+                                            </div>
+                                            <div class="delete-child-info" style="font-size: 14px;">
+                                                <button class="btn btn-sm btn-outline-danger ms-2"
+                                                    onclick="nutritionManager.deleteParentDetails(${parent.parent_id})">
+                                                    <i class="fa-solid fa-trash"></i> Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                `).join('');
+                            })() : ` <
+                    div class = "card" >
+                    <
+                    div class = "card-body" >
+                    <
+                    div class = "empty-state" >
+                    <
+                    i class = "fa-solid fa-user-plus" > < /i> <
+                h5 > No parent information available. < /h5> <
+                p > Add parent details to keep records complete. < /p> < /
+                div > <
+                    /div> < /
+                div >
+                    `}
+                        </div>
+
                         
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="card" style="height: 100%;">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0"><i class="fa-solid fa-history"></i> Measurement History</h6>
@@ -1719,6 +2325,18 @@ $offset = ($current_page - 1) * $items_per_page;
                                     color: '#343a40',
                                     usePointStyle: true,
                                     padding: 20
+                                },
+                                // Add onClick handler for legend items
+                                onClick: (event, legendItem, legend) => {
+                                    // Map dataset index to chart type
+                                    const chartTypes = ['weight', 'height', 'bmi'];
+                                    const clickedType = chartTypes[legendItem.datasetIndex];
+
+                                    // Trigger the toggleChartType method
+                                    this.toggleChartType(clickedType);
+
+                                    // Return false to prevent default legend click behavior
+                                    return false;
                                 }
                             }
                         },
@@ -1971,6 +2589,194 @@ $offset = ($current_page - 1) * $items_per_page;
                 const modal = new bootstrap.Modal(document.getElementById('editChildDetailsModal'));
                 modal.show();
             }
+
+            addParentDetails(childId) {
+                const child = this.children.find(c => c.child_id == childId);
+                if (child) {
+                    // Wait for DOM to be ready, then populate and show modal
+                    setTimeout(() => {
+                        // Populate child info in the modal
+                        document.getElementById('childIdParent').value = '#' + childId;
+                        document.getElementById('childNameParent').value = `${child.first_name} ${child.last_name}`;
+
+                        // Clear other form fields but keep child info
+                        document.getElementById('newFullName').value = '';
+                        document.getElementById('parentContactNumber').value = '';
+                        document.getElementById('parentOccupation').value = '';
+
+                        // Get modal element and check if it exists
+                        const modalElement = document.getElementById('addParentDetails');
+                        if (modalElement) {
+                            const modal = new bootstrap.Modal(modalElement);
+                            modal.show();
+                        } else {
+                            console.error('Modal element addParentDetails not found');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Modal not found. Please refresh the page.',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        }
+                    }, 100);
+                }
+            }
+
+            async editParentDetails(parentId) {
+                try {
+                    const response = await fetch(`./child_data/get_parent_for_edit.php?parent_id=${parentId}`);
+                    const data = await response.json();
+
+                    if (data.parent) {
+                        this.showEditParentDetailsModal(data.parent);
+                    }
+                } catch (error) {
+                    console.error('Error loading parent for edit:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load parent information.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            }
+
+            showEditParentDetailsModal(parent) {
+                const child = this.children.find(c => c.child_id == parent.child_id);
+
+                const content = `
+                    <form id="editParentForm">
+                        <input type="hidden" id="editParentId" value="${parent.parent_id}">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="editChildIdParent" value="#${parent.child_id}" readonly disabled>
+                                    <label for="editChildIdParent">
+                                        <i class="fa-solid fa-child"></i> Child ID
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="editChildNameParent" value="${child ? child.first_name + ' ' + child.last_name : 'N/A'}" readonly disabled>
+                                    <label for="editChildNameParent">
+                                        <i class="fa-solid fa-user"></i> Child Name
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="editParentFullName" value="${parent.parent_name}" required>
+                                    <label for="editParentFullName">
+                                        <i class="fa-solid fa-user"></i> Full Name
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="editParentContact" value="${parent.contact}" required>
+                                    <label for="editParentContact">
+                                        <i class="fa-solid fa-phone"></i> Contact Number
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="editParentOccupation" value="${parent.occupation}" required>
+                                    <label for="editParentOccupation">
+                                        <i class="fa-solid fa-briefcase"></i> Occupation
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <select class="form-select" id="editParentRelationship" required>
+                                        <option value="" disabled selected>Select Relationship</option>
+                                        <option value="Father" ${parent.relationship === 'Father' ? 'selected' : ''}>Father</option>
+                                        <option value="Mother" ${parent.relationship === 'Mother' ? 'selected' : ''}>Mother</option>
+                                        <option value="Guardian" ${parent.relationship === 'Guardian' ? 'selected' : ''}>Guardian</option>
+                                    </select>
+                                    <label for="editParentRelationship">
+                                        <i class="fa-solid fa-heart"></i> Relationship
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                `;
+
+                document.getElementById('editParentDetailsContent').innerHTML = content;
+                const modal = new bootstrap.Modal(document.getElementById('editParentDetailsModal'));
+                modal.show();
+            }
+
+            async deleteParentDetails(parentId) {
+                const result = await Swal.fire({
+                    title: 'Delete Parent Details?',
+                    text: "This action cannot be undone!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, delete it!'
+                });
+
+                if (result.isConfirmed) {
+                    try {
+                        $.ajax({
+                            url: '../backend/admin/delete_parent.php',
+                            type: 'POST',
+                            data: {
+                                parent_id: parentId
+                            },
+                            success: async (response) => {
+                                const res = JSON.parse(response);
+                                if (res.status === 'success') {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Deleted!',
+                                        text: 'Parent details have been deleted.',
+                                        confirmButtonColor: '#3085d6'
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: res.message || 'Failed to delete parent details.',
+                                        confirmButtonColor: '#dc3545'
+                                    });
+                                }
+                            },
+                            error: (xhr, status, error) => {
+                                console.error('AJAX Error:', status, error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'An error occurred while deleting parent details.',
+                                    confirmButtonColor: '#dc3545'
+                                });
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error deleting parent details:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while deleting parent details.',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                }
+            }
         }
 
         // Initialize nutrition manager
@@ -1987,12 +2793,23 @@ $offset = ($current_page - 1) * $items_per_page;
             const height = document.getElementById('heightInput').value;
             const statusId = document.getElementById('statusSelect').value;
 
-            if (!childId || !date || !weight || !height || !statusId) {
+            if (!childId || !date || !weight || !height) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Required Fields Missing',
-                    text: 'Please fill in all required fields and ensure BMI/status is calculated.',
+                    text: 'Please fill in all required fields. BMI and nutritional status will be calculated automatically.',
                     confirmButtonColor: '#2d5a3d'
+                });
+                return;
+            }
+
+            // Status should be auto-calculated, but verify it exists
+            if (!statusId) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Status Calculation Error',
+                    text: 'Nutritional status could not be determined. Please check weight and height values.',
+                    confirmButtonColor: '#dc3545'
                 });
                 return;
             }
@@ -2206,8 +3023,135 @@ $offset = ($current_page - 1) * $items_per_page;
             }
         }
 
+        function clearDateFilter() {
+            document.getElementById('startDateFilter').value = '';
+            document.getElementById('endDateFilter').value = '';
+            nutritionManager.filterRecords();
+        }
+
         function exportRecords() {
-            window.open('./child_data/export_nutrition_records.php', '_blank');
+            Swal.fire({
+                title: 'Export Nutrition Records',
+                html: `
+            <div class="text-start">
+                <div class="mb-3">
+                    <label class="form-label">Nutritional Status Filter:</label>
+                    <select id="exportStatusFilter" class="form-select">
+                        <option value="">All Statuses</option>
+                        ${nutritionManager.nutritionStatuses.map(status => `
+                            <option value="${status.status_id}">${status.status_name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Gender Filter:</label>
+                    <select id="exportGenderFilter" class="form-select">
+                        <option value="">All Genders</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Zone Filter:</label>
+                    <select id="exportZoneFilter" class="form-select">
+                        <option value="">All Zones</option>
+                        ${nutritionManager.zones.map(zone => `
+                            <option value="${zone.zone_name}">${zone.zone_name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Age Range:</label>
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="number" id="exportMinAge" class="form-control" placeholder="Min Age" min="0" max="18">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" id="exportMaxAge" class="form-control" placeholder="Max Age" min="0" max="18">
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">BMI Range:</label>
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="number" id="exportMinBMI" class="form-control" placeholder="Min BMI" step="0.1">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" id="exportMaxBMI" class="form-control" placeholder="Max BMI" step="0.1">
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Date Range:</label>
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="date" id="exportStartDate" class="form-control" placeholder="Start Date">
+                        </div>
+                        <div class="col-6">
+                            <input type="date" id="exportEndDate" class="form-control" placeholder="End Date">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `,
+                showCancelButton: true,
+                confirmButtonText: 'Export',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#27ae60',
+                cancelButtonColor: '#6c757d',
+                width: '500px',
+                preConfirm: () => {
+                    const statusId = document.getElementById('exportStatusFilter').value;
+                    const gender = document.getElementById('exportGenderFilter').value;
+                    const zone = document.getElementById('exportZoneFilter').value;
+                    const minAge = document.getElementById('exportMinAge').value;
+                    const maxAge = document.getElementById('exportMaxAge').value;
+                    const minBMI = document.getElementById('exportMinBMI').value;
+                    const maxBMI = document.getElementById('exportMaxBMI').value;
+                    const startDate = document.getElementById('exportStartDate').value;
+                    const endDate = document.getElementById('exportEndDate').value;
+
+                    return {
+                        status_id: statusId,
+                        gender: gender,
+                        zone: zone,
+                        min_age: minAge,
+                        max_age: maxAge,
+                        min_bmi: minBMI,
+                        max_bmi: maxBMI,
+                        start_date: startDate,
+                        end_date: endDate,
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const filters = result.value;
+                    const params = new URLSearchParams();
+                    if (filters.status_id) params.append('status_id', filters.status_id);
+                    if (filters.gender) params.append('gender', filters.gender);
+                    if (filters.zone) params.append('zone', filters.zone);
+                    if (filters.min_age) params.append('min_age', filters.min_age);
+                    if (filters.max_age) params.append('max_age', filters.max_age);
+                    if (filters.min_bmi) params.append('min_bmi', filters.min_bmi);
+                    if (filters.max_bmi) params.append('max_bmi', filters.max_bmi);
+                    if (filters.start_date) params.append('start_date', filters.start_date);
+                    if (filters.end_date) params.append('end_date', filters.end_date);
+
+                    // Open export URL with filters
+                    const exportUrl = `./child_data/export_nutrition_records.php?${params.toString()}`;
+                    window.open(exportUrl, '_blank');
+
+                    // Show success message
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Export Started',
+                        text: 'Your filtered nutrition records are being exported.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            });
         }
 
         function printChildReport() {
@@ -2410,6 +3354,150 @@ $offset = ($current_page - 1) * $items_per_page;
                     icon: 'error',
                     title: 'Error',
                     text: 'An error occurred while adding the child.',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        }
+
+        function addParentDetails() {
+            const childId = document.getElementById('childIdParent').value.replace('#', '').trim();
+            const fullName = document.getElementById('newFullName').value.trim();
+            const contactNumber = document.getElementById('parentContactNumber').value.trim();
+            const occupation = document.getElementById('parentOccupation').value.trim();
+            const relationship = document.getElementById('parentRelationship').value.trim();
+
+            // Validation
+            if (!childId || !fullName || !contactNumber || !occupation || !relationship) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Required Fields Missing',
+                    text: 'Please fill in all required fields.',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+
+            try {
+                $.ajax({
+                    url: '../backend/admin/add_parent_details.php',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        child_id: childId,
+                        parent_name: fullName,
+                        parent_contact: contactNumber,
+                        parent_occupation: occupation,
+                        parent_relationship: relationship
+                    },
+                    success: function(result) {
+                        if (result.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Added!',
+                                text: 'Parent details added successfully.',
+                                confirmButtonColor: '#27ae60'
+                            }).then((result) => {
+                                if (result) {
+                                    window.location.reload();
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: result.message || 'Failed to add parent details.',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error adding parent details:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while adding parent details.',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Error adding parent details:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while adding parent details.',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        }
+
+        function saveParentDetails() {
+            const parentId = document.getElementById('editParentId').value;
+            const fullName = document.getElementById('editParentFullName').value.trim();
+            const contactNumber = document.getElementById('editParentContact').value.trim();
+            const occupation = document.getElementById('editParentOccupation').value.trim();
+            const relationship = document.getElementById('editParentRelationship').value;
+
+            // Validation
+            if (!parentId || !fullName || !contactNumber || !occupation || !relationship) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Required Fields Missing',
+                    text: 'Please fill in all required fields.',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+
+            try {
+                $.ajax({
+                    url: '../backend/admin/update_parent_details.php',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        parent_id: parentId,
+                        parent_name: fullName,
+                        parent_contact: contactNumber,
+                        parent_occupation: occupation,
+                        parent_relationship: relationship
+                    },
+                    success: function(result) {
+                        if (result.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Updated!',
+                                text: 'Parent details updated successfully.',
+                                confirmButtonColor: '#27ae60'
+                            }).then(() => {
+                                bootstrap.Modal.getInstance(document.getElementById('editParentDetailsModal')).hide();
+                                window.location.reload();
+                            });
+                        } else {
+                            console.error('Error response:', result);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: result.message || 'Failed to update parent details.',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error updating parent details:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while updating parent details.',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Error updating parent details:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while updating parent details.',
                     confirmButtonColor: '#dc3545'
                 });
             }

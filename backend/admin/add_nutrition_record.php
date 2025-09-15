@@ -27,7 +27,7 @@
         }
 
         // Insert nutrition record
-        $insert_query = "INSERT INTO tbl_nutritrion_record (child_id, date_recorded, weight, height, status_id, bmi, recorded_by) 
+        $insert_query = "INSERT INTO tbl_nutrition_record (child_id, date_recorded, weight, height, status_id, bmi, recorded_by) 
                          VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = mysqli_prepare($conn, $insert_query);
         mysqli_stmt_bind_param(
