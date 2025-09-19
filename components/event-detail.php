@@ -282,7 +282,7 @@ while ($row = $result_related->fetch_assoc()) {
                             setTimeout(function() {
                                 new Notification('Event Reminder', {
                                     body: `${eventTitle} starts in 1 hour!`,
-                                    icon: '../assets/logo.png'
+                                    icon: '../assets/nutri_log.jpeg'
                                 });
                             }, reminderTime - now);
                             

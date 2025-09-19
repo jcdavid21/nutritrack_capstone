@@ -30,9 +30,10 @@ try {
             
         case 'issue':
             // Issue type distribution
-            $sql = "SELECT issue_type, COUNT(*) as count 
-                    FROM tbl_flagged_record 
-                    GROUP BY issue_type 
+            $sql = "SELECT ft.flagged_name, COUNT(*) as count 
+                    FROM tbl_flagged_record fr
+                    LEFT JOIN tbl_flagged_type ft ON fr.issue_type = ft.ft_id
+                    GROUP BY ft.flagged_name
                     ORDER BY count DESC";
             $result = $conn->query($sql);
             
@@ -40,7 +41,7 @@ try {
             $values = [];
             
             while ($row = $result->fetch_assoc()) {
-                $labels[] = $row['issue_type'];
+                $labels[] = $row['flagged_name'] ?: 'Unknown';
                 $values[] = (int)$row['count'];
             }
             

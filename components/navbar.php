@@ -1,6 +1,6 @@
 <nav>
     <div class="img-logo">
-        <img src="../assets/logo.png" alt="logo">
+        <img src="../assets/nutri_log.jpeg" alt="logo">
     </div>
 
     <div class="right-container">

@@ -760,6 +760,9 @@ $offset = ($current_page - 1) * $items_per_page;
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-info" onclick="generateMealPlan()">
+                        <i class="fa-solid fa-utensils"></i> Generate Meal Plan
+                    </button>
                     <button type="button" class="btn btn-gradient" onclick="printChildReport()">
                         <i class="fa-solid fa-print"></i> Print Report
                     </button>
@@ -1005,6 +1008,7 @@ $offset = ($current_page - 1) * $items_per_page;
                 this.isEditMode = false;
                 this.currentEditRecordId = null;
                 this.originalMeasurementRecords = [];
+                this.selectedChild = null;
                 this.init();
             }
 
@@ -2079,18 +2083,19 @@ $offset = ($current_page - 1) * $items_per_page;
             }
 
 
+            // Replace the showChildDetailsModal method with this updated version
             showChildDetailsModal(data, parentData) {
                 const child = data.child;
                 const records = data.records || [];
                 const birthDate = new Date(child.birthdate);
                 const age = this.calculateAge(birthDate);
                 const initials = `${child.first_name[0]}${child.last_name[0]}`.toUpperCase();
+                this.selectedChild = child.child_id;
 
                 document.getElementById('childDetailsModalTitle').innerHTML = `
                     <i class="fa-solid fa-user-circle"></i>
                     ${child.first_name} ${child.last_name}
                 `;
-                console.log('Parent Data:', parentData);
 
                 const content = `
                     <!-- Top Section: Basic Info and Measurement History -->
@@ -2132,6 +2137,12 @@ $offset = ($current_page - 1) * $items_per_page;
                                         <button class="btn btn-sm btn-outline-primary ms-2"
                                             onclick="nutritionManager.editChildDetails(${child.child_id})">
                                             <i class="fa-solid fa-edit"></i> Edit
+                                        </button>
+                                    </div>
+                                    <div class="meal-plan-info mt-3" style="font-size: 14px;">
+                                        <button class="btn btn-sm btn-outline-success ms-0"
+                                            onclick="generateMealPlan()">
+                                            <i class="fa-solid fa-utensils"></i> Generate Meal Plan
                                         </button>
                                     </div>
                                 </div>
@@ -2183,20 +2194,15 @@ $offset = ($current_page - 1) * $items_per_page;
                                     </div>
                                 </div>
                                 `).join('');
-                            })() : ` <
-                    div class = "card" >
-                    <
-                    div class = "card-body" >
-                    <
-                    div class = "empty-state" >
-                    <
-                    i class = "fa-solid fa-user-plus" > < /i> <
-                h5 > No parent information available. < /h5> <
-                p > Add parent details to keep records complete. < /p> < /
-                div > <
-                    /div> < /
-                div >
-                    `}
+                            })() : `<div class="card">
+                            <div class="card-body">
+                            <div class="empty-state">
+                            <i class="fa-solid fa-user-plus"></i>
+                        <h5>No parent information available.</h5>
+                        <p>Add parent details to keep records complete.</p>
+                        </div>
+                        </div>
+                    </div>`}
                         </div>
 
                         
@@ -2240,6 +2246,23 @@ $offset = ($current_page - 1) * $items_per_page;
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Meal Plan Section (Initially Hidden) -->
+                        <div class="row" id="mealPlanSection" style="display: none;">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0"><i class="fa-solid fa-utensils"></i> Recommended Meal Plan</h6>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="nutritionManager.hideMealPlan()">
+                                            <i class="fa-solid fa-times"></i> Hide
+                                        </button>
+                                    </div>
+                                    <div class="card-body" id="mealPlanContent">
+                                        <!-- Meal plan content will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     `;
 
                 document.getElementById('childDetailsContent').innerHTML = content;
@@ -2254,6 +2277,275 @@ $offset = ($current_page - 1) * $items_per_page;
                 setTimeout(() => {
                     this.initializeGrowthChart(records);
                 }, 300);
+            }
+
+            // Add these methods to your NutritionRecordsManager class
+
+            async generateMealPlan() {
+                const childId = this.selectedChild;
+                if (!childId) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Child Selected',
+                        text: 'Please select a child to generate a meal plan.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+
+                try {
+                    // Show loading state
+                    Swal.fire({
+                        title: 'Generating Meal Plan...',
+                        text: 'Please wait while we create a personalized meal plan',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    console.log('Generating meal plan for child ID:', childId);
+
+                    const response = await fetch(`./child_data/meal_plan_generator.php?child_id=${childId}`);
+                    const data = await response.json();
+
+                    if (data.error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.error,
+                            confirmButtonColor: '#dc3545'
+                        });
+                        return;
+                    }
+
+                    if (data.success) {
+                        this.showMealPlan(data);
+                        Swal.close();
+                    }
+                } catch (error) {
+                    console.error('Error generating meal plan:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to generate meal plan. Please try again.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            }
+
+            showMealPlan(data) {
+                const { child, age, meal_plan } = data;
+                
+                const mealPlanContent = `
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h6><i class="fa-solid fa-info-circle"></i> Meal Plan Overview</h6>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <strong>Status Category:</strong> ${meal_plan.status_category}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Age Group:</strong> ${meal_plan.age_group.replace('_', ' ').toUpperCase()}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Child Age:</strong> ${age} years
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Estimated Daily Cost:</strong> ₱${meal_plan.estimated_daily_cost.min_cost.toFixed(0)}-${meal_plan.estimated_daily_cost.max_cost.toFixed(0)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Daily Meals -->
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fa-solid fa-calendar-day"></i> Daily Meal Plan</h6>
+                                </div>
+                                <div class="card-body">
+                                    ${this.renderDailyMeals(meal_plan.daily_meals)}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Benefits and Tips -->
+                        <div class="col-md-4">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fa-solid fa-heart"></i> Benefits</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        ${meal_plan.benefits.map(benefit => `<li><i class="fa-solid fa-check text-success me-2"></i>${benefit}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fa-solid fa-bullseye"></i> Goals</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        ${meal_plan.nutritional_goals.map(goal => `<li><i class="fa-solid fa-target text-primary me-2"></i>${goal}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <!-- Important Notes -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fa-solid fa-exclamation-triangle text-warning"></i> Important Notes</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        ${meal_plan.important_notes.map(note => `<li><i class="fa-solid fa-info-circle text-info me-2"></i>${note}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feeding Tips -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fa-solid fa-lightbulb text-success"></i> Feeding Tips</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        ${meal_plan.feeding_tips.map(tip => `<li><i class="fa-solid fa-utensils text-success me-2"></i>${tip}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="alert alert-warning">
+                                <h6><i class="fa-solid fa-stethoscope"></i> Medical Disclaimer</h6>
+                                <p class="mb-0"><small>This meal plan is for guidance only and should not replace professional medical or nutritional advice. Please consult with a healthcare provider, pediatrician, or registered dietitian before making significant changes to your child's diet, especially if the child has specific health conditions or dietary restrictions.</small></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button class="btn btn-success me-2" onclick="nutritionManager.printMealPlan()">
+                            <i class="fa-solid fa-print"></i> Print Meal Plan
+                        </button>
+                    </div>
+                `;
+
+                document.getElementById('mealPlanContent').innerHTML = mealPlanContent;
+                document.getElementById('mealPlanSection').style.display = 'block';
+                
+                // Scroll to meal plan section
+                document.getElementById('mealPlanSection').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }
+
+            renderDailyMeals(dailyMeals) {
+                const mealTimes = [
+                    { key: 'breakfast', label: 'Breakfast', icon: 'fa-sun', color: 'warning' },
+                    { key: 'morning_snack', label: 'Morning Snack', icon: 'fa-cookie-bite', color: 'info' },
+                    { key: 'lunch', label: 'Lunch', icon: 'fa-utensils', color: 'success' },
+                    { key: 'afternoon_snack', label: 'Afternoon Snack', icon: 'fa-apple-alt', color: 'secondary' },
+                    { key: 'dinner', label: 'Dinner', icon: 'fa-moon', color: 'dark' }
+                ];
+
+                return mealTimes.map(meal => {
+                    if (!dailyMeals[meal.key]) return '';
+                    
+                    return `
+                        <div class="meal-time-card mb-3">
+                            <div class="card">
+                                <div class="card-header bg-${meal.color} text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fa-solid ${meal.icon} me-2"></i>
+                                        ${meal.label}
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled mb-0">
+                                        ${dailyMeals[meal.key].map(food => `
+                                            <li class="mb-1">
+                                                <i class="fa-solid fa-circle text-${meal.color} me-2" style="font-size: 8px;"></i>
+                                                ${food}
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            hideMealPlan() {
+                document.getElementById('mealPlanSection').style.display = 'none';
+            }
+
+            printMealPlan() {
+                const mealPlanContent = document.getElementById('mealPlanContent').innerHTML;
+                const childName = this.currentChildData ? `${this.currentChildData.first_name} ${this.currentChildData.last_name}` : 'Child';
+                
+                const printWindow = window.open('', '_blank', 'width=800,height=600');
+                printWindow.document.write(`
+                    <html>
+                    <head>
+                        <title>Meal Plan for ${childName}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            .card { border: 1px solid #ddd; margin-bottom: 15px; page-break-inside: avoid; }
+                            .card-header { background-color: #f8f9fa; padding: 10px; font-weight: bold; }
+                            .card-body { padding: 10px; }
+                            .alert { padding: 10px; background-color: #f8f9fa; border: 1px solid #ddd; margin-bottom: 15px; }
+                            .text-success { color: #28a745; }
+                            .text-warning { color: #ffc107; }
+                            .text-info { color: #17a2b8; }
+                            .text-primary { color: #007bff; }
+                            .bg-warning { background-color: #ffc107; color: white; }
+                            .bg-info { background-color: #17a2b8; color: white; }
+                            .bg-success { background-color: #28a745; color: white; }
+                            .bg-secondary { background-color: #6c757d; color: white; }
+                            .bg-dark { background-color: #343a40; color: white; }
+                            ul { margin: 0; padding-left: 20px; }
+                            .list-unstyled { list-style: none; padding-left: 0; }
+                            .row { display: flex; flex-wrap: wrap; margin: 0 -15px; }
+                            .col-md-3, .col-md-4, .col-md-6, .col-md-8, .col-12 { padding: 0 15px; flex: 1; }
+                            @media print { .no-print { display: none; } }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Personalized Meal Plan for ${childName}</h1>
+                        <p>Generated on: ${new Date().toLocaleDateString()}</p>
+                        ${mealPlanContent.replace(/onclick="[^"]*"/g, '').replace(/class="[^"]*btn[^"]*"/g, 'class="no-print"')}
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.print();
+            }
+
+            exportMealPlanPDF() {
+                // This would require a PDF library or server-side PDF generation
+                Swal.fire({
+                    icon: 'info',
+                    title: 'PDF Export',
+                    text: 'PDF export functionality would require additional setup. For now, please use the Print option and save as PDF.',
+                    confirmButtonColor: '#17a2b8'
+                });
             }
 
 
@@ -2909,6 +3201,10 @@ $offset = ($current_page - 1) * $items_per_page;
                     confirmButtonColor: '#dc3545'
                 });
             }
+        }
+
+        function generateMealPlan() {
+             nutritionManager.generateMealPlan();
         }
 
         async function updateMeasurement() {

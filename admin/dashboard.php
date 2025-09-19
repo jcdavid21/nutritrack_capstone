@@ -23,21 +23,43 @@ WHERE vaccine_status = 'Completed';";
 $completed_vaccinated_result = mysqli_query($conn, $completed_vaccinated_query);
 $completed_vaccinated = mysqli_fetch_assoc($completed_vaccinated_result)['count'];
 
-// Fetch flagged cases data for bar chart - all years by default
+// Fetch flagged cases data for bar chart - by type and month
 $flagged_cases_query = "SELECT 
-    DATE_FORMAT(date_flagged, '%Y-%m') as month,
-    YEAR(date_flagged) as year,
-    MONTH(date_flagged) as month_num,
-    MONTHNAME(date_flagged) as month_name,
+    DATE_FORMAT(fr.date_flagged, '%Y-%m') as month,
+    YEAR(fr.date_flagged) as year,
+    MONTH(fr.date_flagged) as month_num,
+    MONTHNAME(fr.date_flagged) as month_name,
+    ft.flagged_name,
+    ft.ft_id,
     COUNT(*) as count 
-    FROM tbl_flagged_record 
-    GROUP BY DATE_FORMAT(date_flagged, '%Y-%m') 
-    ORDER BY month DESC 
-    LIMIT 12";
+    FROM tbl_flagged_record fr
+    JOIN tbl_flagged_type ft ON fr.issue_type = ft.ft_id
+    GROUP BY DATE_FORMAT(fr.date_flagged, '%Y-%m'), ft.ft_id, ft.flagged_name
+    ORDER BY fr.date_flagged DESC, ft.flagged_name ASC";
 $flagged_cases_result = mysqli_query($conn, $flagged_cases_query);
 $flagged_cases_data = [];
 while ($row = mysqli_fetch_assoc($flagged_cases_result)) {
     $flagged_cases_data[] = $row;
+}
+
+// Get available months for filter
+$months_query = "SELECT DISTINCT 
+    DATE_FORMAT(date_flagged, '%Y-%m') as month,
+    DATE_FORMAT(date_flagged, '%M %Y') as month_display
+    FROM tbl_flagged_record 
+    ORDER BY month DESC";
+$months_result = mysqli_query($conn, $months_query);
+$available_months = [];
+while ($row = mysqli_fetch_assoc($months_result)) {
+    $available_months[] = $row;
+}
+
+// Get available case types for filter
+$case_types_query = "SELECT ft_id, flagged_name FROM tbl_flagged_type ORDER BY flagged_name ASC";
+$case_types_result = mysqli_query($conn, $case_types_query);
+$available_case_types = [];
+while ($row = mysqli_fetch_assoc($case_types_result)) {
+    $available_case_types[] = $row;
 }
 
 // Get available years for filter
@@ -874,11 +896,23 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
                 <div class="chart-header">
                     <h3 class="chart-title">Flagged Cases Trend</h3>
                     <p class="chart-subtitle">Monthly flagged cases by year</p>
-                    <div class="chart-filters" style="display: flex; gap: 10px;">
+                    <div class="chart-filters" style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <select id="flaggedCasesYearFilter" class="filter-select">
                             <option value="all" selected>All Years</option>
                             <?php foreach ($available_years as $year): ?>
                                 <option value="<?php echo $year; ?>"><?php echo $year; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select id="flaggedCasesMonthFilter" class="filter-select">
+                            <option value="all">All Months</option>
+                            <?php foreach ($available_months as $month): ?>
+                                <option value="<?php echo $month['month']; ?>"><?php echo htmlspecialchars($month['month_display']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select id="flaggedCaseTypeFilter" class="filter-select">
+                            <option value="all">All Case Types</option>
+                            <?php foreach ($available_case_types as $case_type): ?>
+                                <option value="<?php echo $case_type['ft_id']; ?>"><?php echo htmlspecialchars($case_type['flagged_name']); ?></option>
                             <?php endforeach; ?>
                         </select>
                         <select id="flaggedCasesZoneFilter" class="filter-select">
@@ -893,25 +927,8 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
                     <canvas id="flaggedCasesChart"></canvas>
                 </div>
             </div>
-
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3 class="chart-title">Nutrition Status Distribution</h3>
-                    <p class="chart-subtitle">Current nutrition status of registered children</p>
-                    <div class="chart-filters">
-                        <select id="nutritionFilter" class="filter-select">
-                            <option value="all">All Zones</option>
-                            <?php foreach ($zones as $zone): ?>
-                                <option value="<?php echo $zone['zone_id']; ?>"><?php echo htmlspecialchars($zone['zone_name']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </div>
-                <div class="pie-chart-container">
-                    <canvas id="nutritionChart"></canvas>
-                </div>
-            </div>
         </div>
+
 
         <div class="charts-grid">
 
@@ -930,6 +947,25 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
                 </div>
                 <div class="pie-chart-container">
                     <canvas id="vaccinationChart"></canvas>
+                </div>
+            </div>
+
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Nutrition Status Distribution</h3>
+                    <p class="chart-subtitle">Current nutrition status of registered children</p>
+                    <div class="chart-filters">
+                        <select id="nutritionFilter" class="filter-select">
+                            <option value="all">All Zones</option>
+                            <?php foreach ($zones as $zone): ?>
+                                <option value="<?php echo $zone['zone_id']; ?>"><?php echo htmlspecialchars($zone['zone_name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="pie-chart-container">
+                    <canvas id="nutritionChart"></canvas>
                 </div>
             </div>
         </div>
@@ -1195,82 +1231,106 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
 
         function initializeFlaggedChart(data) {
             const yearFilter = document.getElementById('flaggedCasesYearFilter').value;
+            const monthFilter = document.getElementById('flaggedCasesMonthFilter').value;
+            const caseTypeFilter = document.getElementById('flaggedCaseTypeFilter').value;
 
-            let flaggedLabels = [];
-            let flaggedValues = [];
+            // Process data to create datasets for each case type
+            const caseTypes = {};
+            const months = new Set();
 
-            if (yearFilter === 'all') {
-                // Show last 12 months of data across all years
-                flaggedLabels = data.map(item => {
-                    if (!item.month) return 'No Data';
-                    const date = new Date(item.month + '-01');
-                    return date.toLocaleDateString('en-US', {
+            // Group data by case type and collect all months
+            data.forEach(item => {
+                if (!item.month || !item.flagged_name) return;
+
+                const monthKey = item.month;
+                const caseType = item.flagged_name;
+
+                months.add(monthKey);
+
+                if (!caseTypes[caseType]) {
+                    caseTypes[caseType] = {};
+                }
+                caseTypes[caseType][monthKey] = parseInt(item.count || 0);
+            });
+
+            // Convert months set to sorted array
+            const sortedMonths = Array.from(months).sort().slice(-12); // Last 12 months
+
+            // Create labels from months
+            const flaggedLabels = sortedMonths.map(month => {
+                if (!month) return 'No Data';
+                const date = new Date(month + '-01');
+                return date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    year: 'numeric'
+                });
+            });
+
+            // If no data, create default structure
+            if (flaggedLabels.length === 0) {
+                const currentDate = new Date();
+                for (let i = 11; i >= 0; i--) {
+                    const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+                    const monthKey = monthDate.getFullYear() + '-' + String(monthDate.getMonth() + 1).padStart(2, '0');
+                    sortedMonths.push(monthKey);
+                    flaggedLabels.push(monthDate.toLocaleDateString('en-US', {
                         month: 'short',
                         year: 'numeric'
-                    });
-                }).reverse(); // Reverse to show chronological order
-
-                flaggedValues = data.map(item => parseInt(item.count || 0)).reverse();
-
-                if (flaggedLabels.length === 0) {
-                    const currentDate = new Date();
-                    for (let i = 11; i >= 0; i--) {
-                        const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-                        flaggedLabels.push(monthDate.toLocaleDateString('en-US', {
-                            month: 'short',
-                            year: 'numeric'
-                        }));
-                        flaggedValues.push(0);
-                    }
+                    }));
                 }
-            } else {
-                // Show 12 months for specific year
-                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                flaggedLabels = monthNames.map(month => `${month} ${yearFilter}`);
-                flaggedValues = new Array(12).fill(0);
-
-                // Fill in actual data
-                data.forEach(item => {
-                    if (item.month && item.month_num) {
-                        const monthIndex = parseInt(item.month_num) - 1;
-                        if (monthIndex >= 0 && monthIndex < 12) {
-                            flaggedValues[monthIndex] = parseInt(item.count || 0);
-                        }
-                    }
-                });
             }
+
+            // Color palette for different case types
+            const colors = [
+                '#d32f2f', '#f57c00', '#388e3c', '#1976d2', '#7b1fa2',
+                '#c2185b', '#00796b', '#f57f17', '#5d4037', '#455a64'
+            ];
+
+            // Create datasets for each case type
+            const datasets = Object.keys(caseTypes).map((caseType, index) => {
+                const caseData = sortedMonths.map(month => caseTypes[caseType][month] || 0);
+
+                return {
+                    label: caseType,
+                    data: caseData,
+                    backgroundColor: colors[index % colors.length],
+                    borderColor: '#ffffff',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    borderSkipped: false,
+                };
+            });
 
             const flaggedCtx = document.getElementById('flaggedCasesChart').getContext('2d');
 
             if (flaggedChart) {
                 flaggedChart.destroy();
             }
-            const flColors = flaggedValues.map(value => {
-                if (value >= 10) return '#d32f2f'; // Red for high counts
-                if (value >= 5) return '#f57c00'; // Orange for medium counts
-                return '#388e3c'; // Green for low counts
-            });
 
             flaggedChart = new Chart(flaggedCtx, {
                 type: 'bar',
                 data: {
                     labels: flaggedLabels,
-                    datasets: [{
-                        label: 'Flagged Cases',
-                        data: flaggedValues,
-                        backgroundColor: flColors,
-                        borderColor: '#ffffff',
-                        borderWidth: 1,
-                        borderRadius: 6,
-                        borderSkipped: false,
-                    }]
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 11
+                                },
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
                         }
                     },
                     scales: {
@@ -1288,6 +1348,11 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
                                 display: false
                             }
                         }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
                     }
                 }
             });
@@ -1474,21 +1539,26 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
             });
         }
 
-        function filterFlaggedCasesByYear() {
+        function filterFlaggedCasesByFilters() {
             const yearValue = document.getElementById('flaggedCasesYearFilter').value;
+            const monthValue = document.getElementById('flaggedCasesMonthFilter').value;
+            const caseTypeValue = document.getElementById('flaggedCaseTypeFilter').value;
             const zoneValue = document.getElementById('flaggedCasesZoneFilter').value;
 
-            if (yearValue === 'all' && zoneValue === 'all') {
+            // If all filters are 'all', use original data
+            if (yearValue === 'all' && monthValue === 'all' && caseTypeValue === 'all' && zoneValue === 'all') {
                 initializeFlaggedChart(originalFlaggedData);
                 return;
             }
 
             const params = new URLSearchParams({
-                year: yearValue,
+                year: yearValue !== 'all' ? yearValue : '',
+                month: monthValue !== 'all' ? monthValue : '',
+                case_type: caseTypeValue !== 'all' ? caseTypeValue : '',
                 zone_id: zoneValue !== 'all' ? zoneValue : ''
             });
 
-            fetch(`../backend/filter_flagged_cases_by_year.php?${params}`)
+            fetch(`../backend/filter_flagged_cases_by_filters.php?${params}`)
                 .then(response => response.json())
                 .then(data => {
                     initializeFlaggedChart(data);
@@ -1540,8 +1610,10 @@ while ($row = mysqli_fetch_assoc($vaccination_status_result)) {
 
 
         // Event listeners
-        document.getElementById('flaggedCasesYearFilter').addEventListener('change', filterFlaggedCasesByYear);
-        document.getElementById('flaggedCasesZoneFilter').addEventListener('change', filterFlaggedCasesByYear);
+        document.getElementById('flaggedCasesYearFilter').addEventListener('change', filterFlaggedCasesByFilters);
+        document.getElementById('flaggedCasesMonthFilter').addEventListener('change', filterFlaggedCasesByFilters);
+        document.getElementById('flaggedCaseTypeFilter').addEventListener('change', filterFlaggedCasesByFilters);
+        document.getElementById('flaggedCasesZoneFilter').addEventListener('change', filterFlaggedCasesByFilters);
         document.getElementById('vaccinationZoneFilter').addEventListener('change', filterVaccinationByZone);
         document.getElementById('nutritionFilter').addEventListener('change', filterNutrition);
 

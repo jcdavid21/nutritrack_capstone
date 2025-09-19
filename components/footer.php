@@ -1,7 +1,7 @@
 <footer>
     <div class="footer-container">
         <div class="logo">
-            <img src="../assets/logo.png" alt="Chesca Siaa Logo">
+            <img src="../assets/nutri_log.jpeg" alt="Chesca Siaa Logo">
         </div>
 
         <div class="location-container">

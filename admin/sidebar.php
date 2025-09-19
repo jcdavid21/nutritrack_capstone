@@ -534,7 +534,7 @@
         <div class="sidebar-header">
             <div class="logo-con">
                 <div class="sidebar-logo">
-                    <img src="../assets/logo.png" alt="logo">
+                    <img src="../assets/nutri_log.jpeg" alt="logo">
                 </div>
             </div>
             <p class="sidebar-subtitle">Admin Panel</p>
@@ -632,6 +632,27 @@
                             <i class="fas fa-syringe"></i>
                         </div>
                         <span class="nav-text">Vaccine Records</span>
+                    </a>
+                </div>
+            </div>
+
+
+            <div class="nav-section">
+                <div class="nav-section-title">Medicine Management</div>
+                <div class="nav-item">
+                    <a href="./medicine_inventory.php" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'medicine_inventory.php') ? 'active' : ''; ?>" data-tooltip="Medicines">
+                        <div class="nav-icon">
+                            <i class="fas fa-pills"></i>
+                        </div>
+                        <span class="nav-text">Medicines</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="./medicine_logs.php" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'medicine_logs.php') ? 'active' : ''; ?>" data-tooltip="Medicine Logs">
+                        <div class="nav-icon">
+                            <i class="fas fa-notes-medical"></i>
+                        </div>
+                        <span class="nav-text">Medicine Logs</span>
                     </a>
                 </div>
             </div>

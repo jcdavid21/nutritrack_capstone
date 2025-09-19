@@ -373,6 +373,112 @@ $offset = ($current_page - 1) * $items_per_page;
         .recent-report-item:hover {
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
+
+        .child-search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1050;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .child-search-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f8f9fa;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .child-search-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .child-search-item:last-child {
+            border-bottom: none;
+        }
+
+        .child-search-item.selected {
+            background-color: var(--primary-red);
+            color: white;
+        }
+
+        .child-avatar-small {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--primary-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .child-search-item.selected .child-avatar-small {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .child-info {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .child-name {
+            font-weight: 600;
+            color: var(--dark-grey);
+            margin-bottom: 2px;
+        }
+
+        .child-search-item.selected .child-name {
+            color: white;
+        }
+
+        .child-details {
+            font-size: 0.85rem;
+            color: var(--medium-grey);
+            display: flex;
+            gap: 10px;
+        }
+
+        .child-search-item.selected .child-details {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .dropdown-loading,
+        .no-results {
+            padding: 15px;
+            text-align: center;
+            color: var(--medium-grey);
+            font-size: 0.9rem;
+        }
+
+        .form-floating.position-relative {
+            position: relative;
+        }
+
+        /* Highlight matching text */
+        .highlight {
+            background-color: yellow;
+            font-weight: bold;
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+
+        .child-search-item.selected .highlight {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
     </style>
 </head>
 
@@ -584,13 +690,37 @@ $offset = ($current_page - 1) * $items_per_page;
                     <form id="addReportForm">
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <select class="form-select" id="addChildSelect" required onchange="showAddChildInfo()">
-                                        <option value="">Select Child</option>
-                                    </select>
-                                    <label for="addChildSelect">
-                                        <i class="fa-solid fa-child"></i> Child
+                                <div class="form-floating mb-3 position-relative">
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="addChildSearch"
+                                        placeholder="Type to search for child..."
+                                        autocomplete="off"
+                                        required
+                                        oninput="searchChildrenForReports(this.value)"
+                                        onfocus="showChildDropdownForReports()"
+                                        onblur="hideChildDropdownForReports()">
+                                    <label for="addChildSearch">
+                                        <i class="fa-solid fa-child"></i> Search Child
                                     </label>
+
+                                    <!-- Hidden input to store selected child ID -->
+                                    <input type="hidden" id="addChildSelect" required>
+
+                                    <!-- Dropdown results -->
+                                    <div id="childSearchDropdownReports" class="child-search-dropdown" style="display: none;">
+                                        <div class="dropdown-loading" id="childSearchLoadingReports" style="display: none;">
+                                            <i class="fa-solid fa-spinner fa-spin"></i> Searching...
+                                        </div>
+                                        <div id="childSearchResultsReports">
+                                            <!-- Search results will appear here -->
+                                        </div>
+                                        <div class="no-results" id="childSearchNoResultsReports" style="display: none;">
+                                            <i class="fa-solid fa-search"></i>
+                                            No children found matching your search
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -1312,6 +1442,7 @@ $offset = ($current_page - 1) * $items_per_page;
             reportsManager.showAddChildInfo();
         }
 
+        // Update the addReport function to clear form on success
         async function addReport() {
             const childId = document.getElementById('addChildSelect').value;
             const reportType = document.getElementById('addReportType').value;
@@ -1322,6 +1453,19 @@ $offset = ($current_page - 1) * $items_per_page;
                     icon: 'error',
                     title: 'Required Fields Missing',
                     text: 'Please fill in all required fields.',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+
+            // Validate report date is not in the future
+            const currentDateTime = new Date();
+            const selectedDateTime = new Date(reportDate);
+            if (selectedDateTime > currentDateTime) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Date',
+                    text: 'Report date cannot be in the future.',
                     confirmButtonColor: '#dc3545'
                 });
                 return;
@@ -1345,6 +1489,9 @@ $offset = ($current_page - 1) * $items_per_page;
                                 text: 'Report generated successfully.',
                                 confirmButtonColor: '#27ae60'
                             }).then(() => {
+                                // Clear the form before hiding modal
+                                clearAddReportForm();
+
                                 bootstrap.Modal.getInstance(document.getElementById('addReportModal')).hide();
                                 reportsManager.loadReports().then(() => {
                                     reportsManager.loadTableView();
@@ -1480,6 +1627,7 @@ $offset = ($current_page - 1) * $items_per_page;
             }
         }
 
+        // Fixed export function
         function exportReports() {
             Swal.fire({
                 title: 'Export Reports',
@@ -1489,10 +1637,14 @@ $offset = ($current_page - 1) * $items_per_page;
                     <label class="form-label">Report Type Filter:</label>
                     <select id="exportReportTypeFilter" class="form-select">
                         <option value="">All Report Types</option>
-                        <option value="Malnutrition">Malnutrition</option>
-                        <option value="Growth">Growth</option>
-                        <option value="Vaccination">Vaccination</option>
-                        <option value="General Health">General Health</option>
+                        <option value="Malnutrition Assessment Report">Malnutrition Assessment</option>
+                        <option value="Growth Monitoring Report">Growth Monitoring</option>
+                        <option value="Nutrition Status Report">Nutrition Status</option>
+                        <option value="Severe Malnutrition Alert Report">Severe Malnutrition Alert</option>
+                        <option value="Monthly Progress Report">Monthly Progress</option>
+                        <option value="Vaccination Compliance Report">Vaccination Compliance</option>
+                        <option value="Health Status Summary">Health Status Summary</option>
+                        <option value="Nutrition Improvement Report">Nutrition Improvement</option>
                     </select>
                 </div>
                 <div class="mb-3">
@@ -1508,15 +1660,15 @@ $offset = ($current_page - 1) * $items_per_page;
                     <label class="form-label">Date Range:</label>
                     <div class="row">
                         <div class="col-6">
-                            <input type="date" id="exportStartDate" class="form-control" placeholder="Start Date">
+                            <input type="datetime-local" id="exportStartDate" class="form-control" placeholder="Start Date">
                         </div>
                         <div class="col-6">
-                            <input type="date" id="exportEndDate" class="form-control" placeholder="End Date">
+                            <input type="datetime-local" id="exportEndDate" class="form-control" placeholder="End Date">
                         </div>
                     </div>
                 </div>
             </div>
-        `,
+            `,
                 showCancelButton: true,
                 confirmButtonText: 'Export',
                 cancelButtonText: 'Cancel',
@@ -1528,6 +1680,12 @@ $offset = ($current_page - 1) * $items_per_page;
                     const zone = document.getElementById('exportZoneFilter').value;
                     const startDate = document.getElementById('exportStartDate').value;
                     const endDate = document.getElementById('exportEndDate').value;
+
+                    // Validate date range
+                    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                        Swal.showValidationMessage('Start date must be before end date');
+                        return false;
+                    }
 
                     return {
                         report_type: reportType,
@@ -1562,6 +1720,301 @@ $offset = ($current_page - 1) * $items_per_page;
                 }
             });
         }
+
+        // Global variables for child search in reports
+        let childSearchTimeoutReports = null;
+        let selectedChildIndexReports = -1;
+        let filteredChildrenReports = [];
+        let childDropdownVisibleReports = false;
+
+        // Enhanced search functionality for reports
+        function searchChildrenForReports(query) {
+            clearTimeout(childSearchTimeoutReports);
+
+            const dropdown = document.getElementById('childSearchDropdownReports');
+            const resultsContainer = document.getElementById('childSearchResultsReports');
+            const loadingIndicator = document.getElementById('childSearchLoadingReports');
+            const noResults = document.getElementById('childSearchNoResultsReports');
+
+            if (!query || query.length < 2) {
+                dropdown.style.display = 'none';
+                document.getElementById('addChildSelect').value = '';
+                hideChildInfoReports();
+                return;
+            }
+
+            // Show dropdown and loading
+            dropdown.style.display = 'block';
+            loadingIndicator.style.display = 'block';
+            noResults.style.display = 'none';
+            resultsContainer.innerHTML = '';
+
+            childSearchTimeoutReports = setTimeout(() => {
+                performChildSearchReports(query);
+                loadingIndicator.style.display = 'none';
+            }, 300);
+        }
+
+        function performChildSearchReports(query) {
+            const searchQuery = query.toLowerCase().trim();
+
+            // Filter children based on name, age, or zone
+            filteredChildrenReports = reportsManager.children.filter(child => {
+                const fullName = `${child.first_name} ${child.last_name}`.toLowerCase();
+                const age = reportsManager.calculateAge(new Date(child.birthdate));
+                const zone = (child.zone_name || '').toLowerCase();
+                const childId = child.child_id.toString();
+
+                return fullName.includes(searchQuery) ||
+                    age.toString().includes(searchQuery) ||
+                    zone.includes(searchQuery) ||
+                    childId.includes(searchQuery);
+            });
+
+            selectedChildIndexReports = -1;
+            displaySearchResultsReports(searchQuery);
+        }
+
+        function displaySearchResultsReports(searchQuery) {
+            const resultsContainer = document.getElementById('childSearchResultsReports');
+            const noResults = document.getElementById('childSearchNoResultsReports');
+
+            if (filteredChildrenReports.length === 0) {
+                noResults.style.display = 'block';
+                resultsContainer.innerHTML = '';
+                return;
+            }
+
+            noResults.style.display = 'none';
+            let html = '';
+
+            // Limit results to prevent overwhelming UI
+            const displayChildren = filteredChildrenReports.slice(0, 10);
+
+            displayChildren.forEach((child, index) => {
+                const birthDate = new Date(child.birthdate);
+                const age = reportsManager.calculateAge(birthDate);
+                const initials = `${child.first_name[0]}${child.last_name[0]}`.toUpperCase();
+                const fullName = `${child.first_name} ${child.last_name}`;
+
+                // Highlight matching text
+                const highlightedName = highlightMatchReports(fullName, searchQuery);
+                const highlightedZone = highlightMatchReports(child.zone_name || 'N/A', searchQuery);
+
+                html += `
+            <div class="child-search-item" 
+                 data-child-id="${child.child_id}" 
+                 data-index="${index}"
+                 onmousedown="selectChildForReports(${child.child_id}, '${fullName}', ${age}, '${child.zone_name || 'N/A'}')"
+                 onmouseover="highlightSearchItemReports(${index})">
+                <div class="child-avatar-small">${initials}</div>
+                <div class="child-info">
+                    <div class="child-name">${highlightedName}</div>
+                    <div class="child-details">
+                        <span>${age} years old</span>
+                        <span>Zone: ${highlightedZone}</span>
+                        <span>ID: #${child.child_id}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+            });
+
+            if (filteredChildrenReports.length > 10) {
+                html += `
+            <div class="dropdown-loading">
+                <i class="fa-solid fa-info-circle"></i>
+                Showing first 10 results. Refine your search for more specific results.
+            </div>
+        `;
+            }
+
+            resultsContainer.innerHTML = html;
+        }
+
+        function highlightMatchReports(text, query) {
+            if (!text || !query) return text;
+
+            const regex = new RegExp(`(${escapeRegExpReports(query)})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        function escapeRegExpReports(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function selectChildForReports(childId, childName, age, zone) {
+            // Set values
+            document.getElementById('addChildSearch').value = childName;
+            document.getElementById('addChildSelect').value = childId;
+
+            // Update child info display
+            document.getElementById('addChildName').textContent = childName;
+            document.getElementById('addChildAge').textContent = `${age} years`;
+            document.getElementById('addChildZone').textContent = zone;
+
+            // Show child info
+            document.getElementById('addChildInfoDisplay').style.display = 'block';
+
+            // Hide dropdown
+            hideChildDropdownForReports();
+        }
+
+        function showChildDropdownForReports() {
+            childDropdownVisibleReports = true;
+            const query = document.getElementById('addChildSearch').value;
+            if (query && query.length >= 2) {
+                document.getElementById('childSearchDropdownReports').style.display = 'block';
+            }
+        }
+
+        function hideChildDropdownForReports() {
+            // Small delay to allow for click events
+            setTimeout(() => {
+                if (!childDropdownVisibleReports) return;
+                document.getElementById('childSearchDropdownReports').style.display = 'none';
+                childDropdownVisibleReports = false;
+            }, 150);
+        }
+
+        function hideChildInfoReports() {
+            document.getElementById('addChildInfoDisplay').style.display = 'none';
+        }
+
+        function highlightSearchItemReports(index) {
+            // Remove previous highlights
+            document.querySelectorAll('.child-search-item.selected').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Highlight current item
+            const items = document.querySelectorAll('.child-search-item');
+            if (items[index]) {
+                items[index].classList.add('selected');
+                selectedChildIndexReports = index;
+            }
+        }
+
+        // Enhanced keyboard navigation for reports
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('addChildSearch');
+
+            if (searchInput) {
+                searchInput.addEventListener('keydown', function(e) {
+                    const dropdown = document.getElementById('childSearchDropdownReports');
+
+                    if (dropdown.style.display === 'none') return;
+
+                    const items = document.querySelectorAll('.child-search-item');
+
+                    switch (e.key) {
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            selectedChildIndexReports = Math.min(selectedChildIndexReports + 1, items.length - 1);
+                            updateSelectedItemReports(items);
+                            break;
+
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            selectedChildIndexReports = Math.max(selectedChildIndexReports - 1, -1);
+                            updateSelectedItemReports(items);
+                            break;
+
+                        case 'Enter':
+                            e.preventDefault();
+                            if (selectedChildIndexReports >= 0 && items[selectedChildIndexReports]) {
+                                const selectedItem = items[selectedChildIndexReports];
+                                const childId = selectedItem.dataset.childId;
+                                const child = reportsManager.children.find(c => c.child_id == childId);
+                                if (child) {
+                                    const age = reportsManager.calculateAge(new Date(child.birthdate));
+                                    selectChildForReports(child.child_id, `${child.first_name} ${child.last_name}`, age, child.zone_name || 'N/A');
+                                }
+                            }
+                            break;
+
+                        case 'Escape':
+                            hideChildDropdownForReports();
+                            break;
+                    }
+                });
+            }
+        });
+
+        function updateSelectedItemReports(items) {
+            // Remove all selections
+            items.forEach(item => item.classList.remove('selected'));
+
+            // Add selection to current item
+            if (selectedChildIndexReports >= 0 && items[selectedChildIndexReports]) {
+                items[selectedChildIndexReports].classList.add('selected');
+
+                // Scroll into view if needed
+                items[selectedChildIndexReports].scrollIntoView({
+                    block: 'nearest',
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        // Clear form function for reports
+        function clearAddReportForm() {
+            // Reset form fields
+            document.getElementById('addChildSearch').value = '';
+            document.getElementById('addChildSelect').value = '';
+            document.getElementById('addReportType').value = '';
+
+            // Reset current datetime
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('addReportDate').value = now.toISOString().slice(0, 16);
+
+            // Hide child info display and dropdown
+            document.getElementById('addChildInfoDisplay').style.display = 'none';
+            document.getElementById('childSearchDropdownReports').style.display = 'none';
+
+            // Reset search state
+            selectedChildIndexReports = -1;
+            filteredChildrenReports = [];
+            childDropdownVisibleReports = false;
+        }
+
+        // Update the showAddChildInfo function to work with the new search system
+        function showAddChildInfo() {
+            const childId = document.getElementById('addChildSelect').value;
+            const infoDisplay = document.getElementById('addChildInfoDisplay');
+
+            if (!childId) {
+                infoDisplay.style.display = 'none';
+                return;
+            }
+
+            const child = reportsManager.children.find(c => c.child_id == childId);
+            if (!child) return;
+
+            const birthDate = new Date(child.birthdate);
+            const age = reportsManager.calculateAge(birthDate);
+
+            document.getElementById('addChildName').textContent = `${child.first_name} ${child.last_name}`;
+            document.getElementById('addChildAge').textContent = `${age} years`;
+            document.getElementById('addChildZone').textContent = child.zone_name || 'N/A';
+
+            infoDisplay.style.display = 'block';
+        }
+
+
+
+
+
+        // Add event listener to clear form when modal is hidden
+        document.addEventListener('DOMContentLoaded', function() {
+            const addReportModal = document.getElementById('addReportModal');
+            if (addReportModal) {
+                addReportModal.addEventListener('hidden.bs.modal', function() {
+                    clearAddReportForm();
+                });
+            }
+        });
     </script>
 </body>
 

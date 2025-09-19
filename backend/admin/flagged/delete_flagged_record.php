@@ -33,6 +33,29 @@ try {
         throw new Exception('Flagged record not found');
     }
 
+    $conn->begin_transaction();
+    // If the flagged record is linked to a medicine log, restore the stock
+    $getMedicineQuery = "SELECT ml.medicine_id, ml.quantity_given 
+                        FROM tbl_medicine_log ml 
+                        LEFT JOIN tbl_flagged_record fr ON ml.flagged_id = fr.flagged_id
+                        WHERE fr.flagged_id = ?";
+    $getMedicineStmt = $conn->prepare($getMedicineQuery);
+    $getMedicineStmt->bind_param('i', $flagged_id);
+    $getMedicineStmt->execute();
+    $result = $getMedicineStmt->get_result();
+
+    if($result->num_rows > 0){
+        while($data = $result->fetch_assoc()){
+            // Restore stock quantity
+            $updateStockQuery = "UPDATE tbl_medicine 
+                                SET stock_quantity = stock_quantity + ? 
+                                WHERE medicine_id = ?";
+            $updateStockStmt = $conn->prepare($updateStockQuery);
+            $updateStockStmt->bind_param('ii', $data['quantity_given'], $data['medicine_id']);
+            $updateStockStmt->execute();
+        }
+    }
+
     // Delete flagged record
     $sql = "DELETE FROM tbl_flagged_record WHERE flagged_id = ?";
     $stmt = $conn->prepare($sql);
@@ -54,6 +77,8 @@ try {
         } else {
             throw new Exception('No record was deleted');
         }
+
+        $conn->commit();
     } else {
         throw new Exception('Failed to delete flagged record: ' . $stmt->error);
     }
