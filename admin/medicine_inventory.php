@@ -1445,7 +1445,7 @@ $offset = ($current_page - 1) * $items_per_page;
                     try {
                         const formData = new FormData();
                         formData.append('medicine_id', medicineId);
-                        
+
                         const response = await fetch('../backend/admin/medicine_data/delete_medicine.php', {
                             method: 'POST',
                             body: formData

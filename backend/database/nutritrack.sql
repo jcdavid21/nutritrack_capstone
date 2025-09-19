@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Sep 15, 2025 at 12:52 PM
+-- Generation Time: Sep 19, 2025 at 07:05 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -249,7 +249,24 @@ INSERT INTO `tbl_audit_log` (`log_id`, `user_id`, `activity_type`, `log_date`) V
 (185, 1000, 'Added flagged record with ID: 33 for child ID: 8', '2025-09-15 18:29:48'),
 (186, 1000, 'Added nutrition record for child ID: 6', '2025-09-15 18:51:03'),
 (187, 1000, 'Deleted parent record (Parent ID: 7)', '2025-09-15 18:51:28'),
-(188, 1000, 'Deleted nutrition record with ID: 387', '2025-09-15 18:51:51');
+(188, 1000, 'Deleted nutrition record with ID: 387', '2025-09-15 18:51:51'),
+(189, 1000, 'User logged in', '2025-09-16 16:37:28'),
+(190, 1000, 'User logged in', '2025-09-18 22:28:49'),
+(191, 1000, 'Updated flagged record with ID: 30', '2025-09-18 22:52:25'),
+(192, 1000, 'Updated flagged record with ID: 30', '2025-09-18 22:52:35'),
+(193, 1000, 'Added flagged record with ID: 34 for child ID: 2', '2025-09-18 23:45:33'),
+(194, 1000, 'Deleted flagged record with ID: 34', '2025-09-18 23:45:38'),
+(195, 1000, 'Generated report with ID: 11 for child ID: 4', '2025-09-18 23:53:04'),
+(196, 1000, 'Deleted report with ID: 11', '2025-09-18 23:53:10'),
+(197, 1000, 'Added flagged record with ID: 35 for child ID: 6', '2025-09-19 00:08:52'),
+(198, 1000, 'User logged in', '2025-09-19 18:58:41'),
+(199, 1000, 'Added flagged record with ID: 36 for child ID: 13', '2025-09-19 22:27:21'),
+(200, 1000, 'Deleted flagged record with ID: 36', '2025-09-19 22:49:35'),
+(201, 1000, 'Added flagged record with ID: 37 for child ID: 13', '2025-09-19 22:52:13'),
+(205, 1000, 'Deleted flagged record with ID: 37', '2025-09-19 22:59:37'),
+(206, 1000, 'Added flagged record with ID: 38 for child ID: 13', '2025-09-19 23:01:04'),
+(207, 1000, 'Updated flagged record with ID: 35', '2025-09-20 00:06:37'),
+(208, 1000, 'Updated flagged record with ID: 27', '2025-09-20 00:07:34');
 
 -- --------------------------------------------------------
 
@@ -365,15 +382,109 @@ CREATE TABLE `tbl_flagged_record` (
 --
 
 INSERT INTO `tbl_flagged_record` (`flagged_id`, `child_id`, `issue_type`, `description`, `resolution_notes`, `resolution_date`, `date_flagged`, `flagged_status`, `resolution_type`, `current_status`, `follow_up_date`) VALUES
-(23, 9, 'Underweight', '', 'Referred to East Avenue.', '2025-09-15 15:37:00', '2025-09-15 15:22:00', 'Resolved', 'referral', NULL, '2025-12-20 13:00:00'),
-(25, 6, 'Overweight', '', 'Referred to nearest hospital', '2025-09-15 15:31:00', '2025-09-15 15:23:00', 'Resolved', 'transferred', NULL, NULL),
-(26, 5, 'Severely Underweight', '', 'Normal na yan sha', '2025-09-15 15:32:00', '2025-09-15 15:23:00', 'Resolved', 'improved', 'Normal Weight', NULL),
-(27, 1, 'Behavioral Issues', 'Makulet', NULL, NULL, '2025-09-15 15:41:00', 'Active', NULL, NULL, NULL),
-(29, 11, 'Incomplete Vaccination', '', NULL, NULL, '2024-08-02 15:43:00', 'Under Review', NULL, NULL, NULL),
-(30, 2, 'Overweight', '', NULL, NULL, '2025-09-15 18:11:00', 'Active', NULL, NULL, NULL),
-(31, 3, 'Medical Concerns', '', NULL, NULL, '2024-09-10 18:11:00', 'Active', NULL, NULL, NULL),
-(32, 2, 'Behavioral Issues', '', NULL, NULL, '2024-07-01 18:29:00', 'Active', NULL, NULL, NULL),
-(33, 8, 'Medical Concerns', '', NULL, NULL, '2024-07-17 18:29:00', 'Active', NULL, NULL, NULL);
+(23, 9, '1', '', 'Referred to East Avenue.', '2025-09-15 15:37:00', '2025-09-15 15:22:00', 'Resolved', 'referral', NULL, '2025-12-20 13:00:00'),
+(25, 6, '2', '', 'Referred to nearest hospital', '2025-09-15 15:31:00', '2025-09-15 15:23:00', 'Resolved', 'transferred', NULL, NULL),
+(26, 5, '3', '', 'Normal na yan sha', '2025-09-15 15:32:00', '2025-09-15 15:23:00', 'Resolved', 'improved', 'Normal Weight', NULL),
+(27, 1, '5', 'Makulet', NULL, NULL, '2025-09-15 15:41:00', 'Active', NULL, NULL, NULL),
+(29, 11, '5', '', NULL, NULL, '2024-08-02 15:43:00', 'Under Review', NULL, NULL, NULL),
+(30, 2, '7', '', NULL, NULL, '2025-09-15 18:11:00', 'Active', NULL, NULL, NULL),
+(31, 3, '7', '', NULL, NULL, '2024-09-10 18:11:00', 'Active', NULL, NULL, NULL),
+(32, 2, '6', '', NULL, NULL, '2024-07-01 18:29:00', 'Active', NULL, NULL, NULL),
+(33, 8, '7', '', NULL, NULL, '2024-07-17 18:29:00', 'Active', NULL, NULL, NULL),
+(35, 6, '1', '', NULL, NULL, '2025-09-19 00:08:00', 'Active', NULL, NULL, NULL),
+(38, 13, '7', '', NULL, NULL, '2025-09-19 23:00:00', 'Active', NULL, NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_flagged_type`
+--
+
+CREATE TABLE `tbl_flagged_type` (
+  `ft_id` int(11) NOT NULL,
+  `flagged_name` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_flagged_type`
+--
+
+INSERT INTO `tbl_flagged_type` (`ft_id`, `flagged_name`) VALUES
+(1, 'Underweight'),
+(2, 'Overweight'),
+(3, 'Severely Underweight'),
+(4, 'Incomplete Vaccination'),
+(5, 'Growth Concern'),
+(6, 'Behavioral Issues'),
+(7, 'Medical Concern');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_medicine`
+--
+
+CREATE TABLE `tbl_medicine` (
+  `medicine_id` int(11) NOT NULL,
+  `medicine_name` varchar(255) NOT NULL,
+  `brand` varchar(255) DEFAULT NULL,
+  `generic_name` varchar(255) DEFAULT NULL,
+  `dosage_form` varchar(100) DEFAULT NULL,
+  `strength` varchar(100) DEFAULT NULL,
+  `unit` varchar(50) DEFAULT NULL,
+  `stock_quantity` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `minimum_stock` decimal(10,2) NOT NULL DEFAULT 10.00,
+  `unit_cost` decimal(10,2) DEFAULT 0.00,
+  `expiry_date` date DEFAULT NULL,
+  `batch_number` varchar(100) DEFAULT NULL,
+  `supplier` varchar(255) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `status` enum('Active','Inactive','Expired') DEFAULT 'Active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_medicine`
+--
+
+INSERT INTO `tbl_medicine` (`medicine_id`, `medicine_name`, `brand`, `generic_name`, `dosage_form`, `strength`, `unit`, `stock_quantity`, `minimum_stock`, `unit_cost`, `expiry_date`, `batch_number`, `supplier`, `description`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'Paracetamol Syrup', 'Tempra', 'Paracetamol', 'Syrup', '160mg/5ml', 'bottles', 23.00, 5.00, 45.50, '2025-12-31', 'BT001', 'Pharma Corp', 'For fever and pain relief in children', 'Active', '2025-09-19 12:06:23', '2025-09-19 16:07:05'),
+(3, 'Oral Rehydration Salt', 'ORS', 'Oral Rehydration Salt', 'Powder', '20.5g', 'sachets', 95.00, 20.00, 8.00, '2027-03-15', 'BT003', 'MedSupply Inc', 'For dehydration treatment', 'Active', '2025-09-19 12:06:23', '2025-09-19 16:08:02'),
+(4, 'Iron Supplement', 'Sangobion Kids', 'Ferrous Gluconate', 'Syrup', '150mg/5ml', 'bottles', 10.00, 3.00, 85.00, '2025-09-30', 'BT004', 'Nutrition Co', 'Iron supplement for anemia', 'Active', '2025-09-19 12:06:23', '2025-09-19 16:06:37'),
+(5, 'Zinc Supplement', 'Zinc Plus', 'Zinc Sulfate', 'Tablet', '20mg', 'pieces', 192.00, 25.00, 3.75, '2026-01-20', 'BT005', 'Wellness Corp', 'Zinc supplement for immunity', 'Active', '2025-09-19 12:06:23', '2025-09-19 16:07:34');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_medicine_log`
+--
+
+CREATE TABLE `tbl_medicine_log` (
+  `log_id` int(11) NOT NULL,
+  `flagged_id` int(11) DEFAULT NULL,
+  `child_id` int(11) NOT NULL,
+  `medicine_id` int(11) NOT NULL,
+  `quantity_given` decimal(10,2) NOT NULL,
+  `dosage_instructions` text DEFAULT NULL,
+  `frequency` varchar(100) DEFAULT NULL,
+  `duration` varchar(100) DEFAULT NULL,
+  `administered_by` int(11) DEFAULT NULL,
+  `date_administered` datetime NOT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_medicine_log`
+--
+
+INSERT INTO `tbl_medicine_log` (`log_id`, `flagged_id`, `child_id`, `medicine_id`, `quantity_given`, `dosage_instructions`, `frequency`, `duration`, `administered_by`, `date_administered`, `notes`, `created_at`) VALUES
+(12, 38, 13, 5, 5.00, 'asd', '3', '7 days', 1000, '2025-09-19 23:16:00', '', '2025-09-19 15:17:10'),
+(47, 35, 6, 4, 5.00, '1000', '3', '7 days', 1000, '2025-09-20 00:05:00', '', '2025-09-19 16:06:37'),
+(48, 30, 2, 1, 2.00, '30ml', '3', '7 days', 1000, '2025-09-20 00:06:00', '', '2025-09-19 16:07:05'),
+(49, 27, 1, 5, 3.00, 'None', '3', '7 days', 1000, '2025-09-20 00:07:00', '', '2025-09-19 16:07:34'),
+(50, 31, 3, 3, 5.00, 'None', '3', '7 days', 1000, '2025-09-20 00:07:00', '', '2025-09-19 16:08:02');
 
 -- --------------------------------------------------------
 
@@ -1038,6 +1149,31 @@ ALTER TABLE `tbl_flagged_record`
   ADD KEY `fk_childid_flagged` (`child_id`);
 
 --
+-- Indexes for table `tbl_flagged_type`
+--
+ALTER TABLE `tbl_flagged_type`
+  ADD PRIMARY KEY (`ft_id`);
+
+--
+-- Indexes for table `tbl_medicine`
+--
+ALTER TABLE `tbl_medicine`
+  ADD PRIMARY KEY (`medicine_id`),
+  ADD KEY `idx_medicine_name` (`medicine_name`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_expiry` (`expiry_date`);
+
+--
+-- Indexes for table `tbl_medicine_log`
+--
+ALTER TABLE `tbl_medicine_log`
+  ADD PRIMARY KEY (`log_id`),
+  ADD KEY `fk_medicine_flagged` (`flagged_id`),
+  ADD KEY `fk_medicine_child` (`child_id`),
+  ADD KEY `fk_medicine_med` (`medicine_id`),
+  ADD KEY `fk_medicine_user` (`administered_by`);
+
+--
 -- Indexes for table `tbl_modules`
 --
 ALTER TABLE `tbl_modules`
@@ -1115,7 +1251,7 @@ ALTER TABLE `tbl_announcements`
 -- AUTO_INCREMENT for table `tbl_audit_log`
 --
 ALTER TABLE `tbl_audit_log`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=189;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=209;
 
 --
 -- AUTO_INCREMENT for table `tbl_barangay`
@@ -1139,7 +1275,25 @@ ALTER TABLE `tbl_events`
 -- AUTO_INCREMENT for table `tbl_flagged_record`
 --
 ALTER TABLE `tbl_flagged_record`
-  MODIFY `flagged_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `flagged_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+
+--
+-- AUTO_INCREMENT for table `tbl_flagged_type`
+--
+ALTER TABLE `tbl_flagged_type`
+  MODIFY `ft_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT for table `tbl_medicine`
+--
+ALTER TABLE `tbl_medicine`
+  MODIFY `medicine_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `tbl_medicine_log`
+--
+ALTER TABLE `tbl_medicine_log`
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT for table `tbl_modules`
@@ -1169,7 +1323,7 @@ ALTER TABLE `tbl_parent_details`
 -- AUTO_INCREMENT for table `tbl_report`
 --
 ALTER TABLE `tbl_report`
-  MODIFY `report_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `report_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `tbl_roles`
@@ -1229,6 +1383,15 @@ ALTER TABLE `tbl_events`
 --
 ALTER TABLE `tbl_flagged_record`
   ADD CONSTRAINT `fk_childid_flagged` FOREIGN KEY (`child_id`) REFERENCES `tbl_child` (`child_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `tbl_medicine_log`
+--
+ALTER TABLE `tbl_medicine_log`
+  ADD CONSTRAINT `fk_medicine_child` FOREIGN KEY (`child_id`) REFERENCES `tbl_child` (`child_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_medicine_flagged` FOREIGN KEY (`flagged_id`) REFERENCES `tbl_flagged_record` (`flagged_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_medicine_med` FOREIGN KEY (`medicine_id`) REFERENCES `tbl_medicine` (`medicine_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_medicine_user` FOREIGN KEY (`administered_by`) REFERENCES `tbl_user` (`user_id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `tbl_modules`
